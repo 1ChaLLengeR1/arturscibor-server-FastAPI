@@ -4,7 +4,7 @@ from config.app import ENV_PATH
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=ENV_PATH, extra="ignore")
+    model_config = SettingsConfigDict(env_file=ENV_PATH, env_prefix="ARTURSCIBOR_BACKEND_", extra="ignore")
 
     db_host: str
     db_port: int = 5432

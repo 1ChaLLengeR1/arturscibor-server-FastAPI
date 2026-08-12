@@ -19,6 +19,11 @@ env/*.env
 .coverage
 htmlcov/
 
+# Ansible (real inventory has the real server IP/user; secrets.yml is only
+# ever committed encrypted, plaintext must never be — but that's a runtime
+# state ansible-vault enforces, not something gitignore can catch)
+infra/ansible/inventory.ini
+
 # IDE
 .idea/
 

@@ -1,0 +1,34 @@
+# Separate stack from the backend, deployed first (see
+# infra/ansible/tasks/deploy.yml) so the overlay network + TLS termination
+# exist before the backend stack tries to attach to them.
+
+services:
+  traefik:
+    image: traefik:v2.11
+    command:
+      - "--providers.docker.swarmMode=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@example.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - backend_network_traefik
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - traefik_certs:/letsencrypt
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+networks:
+  backend_network_traefik:
+    external: true
+
+volumes:
+  traefik_certs:

@@ -1,0 +1,16 @@
+services:
+  dev_postgres:
+    image: postgres:16-alpine
+    container_name: arturscibor_dev_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: arturscibor_portfolio
+    volumes:
+      - dev_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  dev_postgres_data:
