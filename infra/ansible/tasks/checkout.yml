@@ -1,0 +1,13 @@
+---
+- name: Clone or update repository (via PAT, HTTPS)
+  ansible.builtin.git:
+    repo: "https://{{ github_pat }}@github.com/1ChaLLengeR1/arturscibor-server-FastAPI.git"
+    dest: "{{ repo_dest }}"
+    version: main
+    force: true
+
+- name: Remove PAT from git remote after checkout
+  ansible.builtin.command:
+    cmd: "git remote set-url origin {{ repo_url }}"
+    chdir: "{{ repo_dest }}"
+  changed_when: true

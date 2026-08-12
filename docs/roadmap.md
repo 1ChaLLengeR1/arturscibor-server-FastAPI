@@ -14,7 +14,7 @@
   - [ ] [3.3 — Sekcja: tools](3.3-tools-section.md)
   - [ ] [3.4 — Sekcje: aboutme + home (scalenie duplikatu)](3.4-aboutme-home-section.md)
   - [ ] [3.5 — Sekcja: projects](3.5-projects-section.md)
-- [ ] [4 — Infra: ansible/ dockerfiles/ scripts/](4-infra.md)
+- [x] [4 — Infra: ansible/ dockerfiles/ scripts/](4-infra-done.md)
 - [ ] [5 — CI/CD (GitHub Actions)](5-ci-cd.md)
 
 ## Kolejność sekcji w pkt. 3 (od najprostszej do najbardziej złożonej)

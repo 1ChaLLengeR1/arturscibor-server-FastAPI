@@ -1,0 +1,14 @@
+---
+- name: Ensure Traefik overlay network exists
+  community.docker.docker_network:
+    name: backend_network_traefik
+    driver: overlay
+    scope: swarm
+    state: present
+
+- name: Ensure backend production overlay network exists
+  community.docker.docker_network:
+    name: backend_production
+    driver: overlay
+    scope: swarm
+    state: present

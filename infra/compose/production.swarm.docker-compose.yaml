@@ -1,0 +1,52 @@
+# Deployed by infra/ansible/tasks/deploy.yml via `docker stack deploy`.
+# BACKEND_IMAGE and ENV_SECRET_VERSION are passed as environment variables
+# to the ansible `command` task (see tasks/deploy.yml) — docker stack deploy
+# interpolates ${...} in values the same way docker compose does (but NOT
+# in mapping keys, hence `name:` below instead of a variable in the secret's
+# own key).
+
+services:
+  backend:
+    image: ${BACKEND_IMAGE}
+    entrypoint: ["/bin/sh", "-c", "set -a && . /run/secrets/env_prod && set +a && uv run uvicorn main:app --host 0.0.0.0 --port 8000"]
+    secrets:
+      - source: env_prod
+        target: env_prod
+    networks:
+      - backend_network_traefik
+      - backend_production
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.arturscibor-backend.rule=Host(`api.example.com`)"
+        - "traefik.http.routers.arturscibor-backend.entrypoints=websecure"
+        - "traefik.http.routers.arturscibor-backend.tls.certresolver=letsencrypt"
+        - "traefik.http.services.arturscibor-backend.loadbalancer.server.port=8000"
+
+  postgres:
+    image: postgres:16-alpine
+    entrypoint: ["/bin/sh", "-c", "set -a && . /run/secrets/env_prod && export POSTGRES_USER=$$ARTURSCIBOR_BACKEND_DB_USER POSTGRES_PASSWORD=$$ARTURSCIBOR_BACKEND_DB_PASSWORD POSTGRES_DB=$$ARTURSCIBOR_BACKEND_DB_NAME && set +a && docker-entrypoint.sh postgres"]
+    secrets:
+      - source: env_prod
+        target: env_prod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend_production
+    deploy:
+      replicas: 1
+
+networks:
+  backend_network_traefik:
+    external: true
+  backend_production:
+    external: true
+
+volumes:
+  postgres_data:
+
+secrets:
+  env_prod:
+    external: true
+    name: "arturscibor_env_prod_${ENV_SECRET_VERSION}"

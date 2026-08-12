@@ -1,0 +1,7 @@
+# Real inventory.ini is not committed — CI (see docs/5-ci-cd.md) renders it
+# at deploy time by substituting TARGET_HOST / SSH_USER secrets into this
+# template. For a manual/local deploy, copy this file to inventory.ini next
+# to it and fill in the real values yourself.
+
+[production]
+__TARGET_HOST__ ansible_user=__SSH_USER__

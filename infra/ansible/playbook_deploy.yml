@@ -1,0 +1,17 @@
+---
+- name: Deploy arturscibor-server-fastapi
+  hosts: production
+  become: true
+  vars_files:
+    - secrets.yml
+  vars:
+    repo_url: "https://github.com/1ChaLLengeR1/arturscibor-server-FastAPI.git"
+    repo_dest: /opt/arturscibor-server-fastapi
+    doppler_project: arturscibor-server-fastapi
+    doppler_config: prod
+  tasks:
+    - import_tasks: tasks/checkout.yml
+    - import_tasks: tasks/networks.yml
+    - import_tasks: tasks/secret_env.yml
+    - import_tasks: tasks/deploy.yml
+    - import_tasks: tasks/cleanup.yml

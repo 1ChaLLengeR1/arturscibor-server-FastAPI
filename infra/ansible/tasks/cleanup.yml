@@ -1,0 +1,5 @@
+---
+- name: Prune unused Docker images
+  ansible.builtin.command:
+    cmd: docker image prune -f
+  changed_when: true
