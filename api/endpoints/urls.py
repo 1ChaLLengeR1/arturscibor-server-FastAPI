@@ -3,3 +3,7 @@
 
 AUTH_LOGIN = "/api/v1/auth/login"
 AUTH_REFRESH = "/api/v1/auth/refresh"
+
+CONTACT_CREATE = "/api/v1/contact/create"
+ADMIN_CONTACT_COLLECTION = "/api/v1/admin/contact/collection"
+ADMIN_CONTACT_DELETE = "/api/v1/admin/contact/{contact_id}/delete"

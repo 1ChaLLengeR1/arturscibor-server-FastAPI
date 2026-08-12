@@ -3,7 +3,6 @@
 -- (the ones with a ForeignKey) are dropped before their parents, though
 -- CASCADE would handle the ordering either way.
 
-DROP TABLE IF EXISTS imagesmessage CASCADE;
 DROP TABLE IF EXISTS filesproject CASCADE;
 DROP TABLE IF EXISTS imagesproject CASCADE;
 DROP TABLE IF EXISTS technologiesproject CASCADE;
