@@ -1,40 +1,61 @@
+"""Alembic environment.
+
+- Loads the same env vars the app uses to build the DB URL (single source).
+- Imports `database.psql.models` so every model registers on Base.metadata
+  before autogenerate runs — otherwise alembic would think the schema is
+  empty and propose dropping every table.
+"""
+
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import URL, engine_from_config, pool
 
-import database.psql.models  # noqa: F401 — registers all models on Base.metadata
+# Importing the models package triggers all model imports, populating
+# Base.metadata. Required for autogenerate to work.
+import database.psql.models  # noqa: F401
 from alembic import context
+from config.settings import settings
 from database.psql.base import Base
-from database.psql.database import DATABASE_URL
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-config.set_main_option("sqlalchemy.url", str(DATABASE_URL))
-
 target_metadata = Base.metadata
 
 
+def _build_database_url() -> URL:
+    return URL.create(
+        drivername="postgresql+psycopg2",
+        username=settings.db_user,
+        password=settings.db_password,
+        host=settings.db_host,
+        port=settings.db_port,
+        database=settings.db_name,
+    )
+
+
 def run_migrations_offline() -> None:
-    url = config.get_main_option("sqlalchemy.url")
+    """Emit SQL to stdout without connecting to a database."""
     context.configure(
-        url=url,
+        url=_build_database_url().render_as_string(hide_password=False),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         compare_type=True,
         compare_server_default=True,
     )
-
     with context.begin_transaction():
         context.run_migrations()
 
 
 def run_migrations_online() -> None:
+    configuration = config.get_section(config.config_ini_section, {})
+    configuration["sqlalchemy.url"] = _build_database_url().render_as_string(hide_password=False)
+
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        configuration,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
@@ -46,7 +67,6 @@ def run_migrations_online() -> None:
             compare_type=True,
             compare_server_default=True,
         )
-
         with context.begin_transaction():
             context.run_migrations()
 
