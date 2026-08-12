@@ -4,7 +4,7 @@ from api.response import ApiErrorData
 from core.common.bcrypt_password import verify_password
 from core.common.jwt import create_access_token, create_refresh_token
 from core.handler.auth.response import AuthTokensResult
-from core.repository.psql.users.one_by_login import one_by_login_psql
+from core.repository.psql.users.one import one_by_login_psql
 
 
 def handler_login(
@@ -29,8 +29,8 @@ def handler_login(
             AuthTokensResult(
                 id_user=user.id,
                 type=user.type,
-                access_token=create_access_token(user.id, extra_claims={"role": user.type}),
-                refresh_token=create_refresh_token(user.id, extra_claims={"role": user.type}),
+                access_token=create_access_token(user.id),
+                refresh_token=create_refresh_token(user.id),
             ),
             None,
             True,

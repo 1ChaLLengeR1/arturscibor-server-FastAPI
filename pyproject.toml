@@ -33,10 +33,10 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-# Old flat layout (DataBase/JWT/routers) and new layered layout (api/core/
-# config/database/infra) coexist during the migration described in
-# docs/roadmap.md — both are listed so packaging keeps working either way.
-include = ["DataBase*", "JWT*", "routers*", "api*", "core*", "config*", "database*", "infra*"]
+# routers/ still exists on disk (not-yet-migrated domains, unplugged from
+# main.py) alongside the new layered layout (api/core/config/database/infra)
+# — see docs/roadmap.md. DataBase/ and JWT/ are gone, fully replaced.
+include = ["routers*", "api*", "core*", "config*", "database*", "infra*"]
 
 [tool.ruff]
 line-length = 120

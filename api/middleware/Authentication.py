@@ -5,12 +5,15 @@ from fastapi import HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from core.common.jwt import decode_access_token
+from core.repository.psql.users.one import one_by_id_psql
 
 
 class JWTAuthenticationMiddleware(HTTPBearer):
     """Dependency (used via Depends()), not ASGI middleware. Decodes the
-    bearer token and optionally enforces the caller's role (embedded in the
-    token as the `role` claim at login — see core/handler/auth/login.py)."""
+    bearer token, then re-verifies user_id and role directly against the
+    database via one_by_id_psql — not just the token's claims — so a role
+    change or a deleted user takes effect immediately instead of waiting
+    for the token to expire."""
 
     def __init__(self, roles: list[str] | None = None, auto_error: bool = True) -> None:
         super().__init__(auto_error=auto_error)
@@ -26,7 +29,15 @@ class JWTAuthenticationMiddleware(HTTPBearer):
         except jwt.PyJWTError as exc:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token") from exc
 
-        if self.roles is not None and payload.get("role") not in self.roles:
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+
+        user, _, ok = one_by_id_psql(user_id)
+        if not ok:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+
+        if self.roles is not None and user.type not in self.roles:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
-        return payload
+        return {"id_user": user.id, "type": user.type}

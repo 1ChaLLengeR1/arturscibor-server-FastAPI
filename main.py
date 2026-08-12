@@ -4,13 +4,10 @@ from fastapi.staticfiles import StaticFiles
 
 from api.exception_handlers import register_exception_handlers
 from api.router import api_router
-from routers.AboutMe import informationme, readmore
-from routers.Contact import contact
 
-# Old, not-yet-migrated domains — see docs/3.2-3.5-*.md
-from routers.Home import images_me, information_cv, jobs
-from routers.Projects import download_project, images, project, technologies
-from routers.Tools import tools
+# Old, not-yet-migrated domains (routers/) are unplugged on purpose — see
+# docs/3.2-3.5-*.md. Files still exist on disk, just not imported/included
+# here, so only the migrated endpoints (currently: auth) are live.
 
 app = FastAPI()
 
@@ -29,15 +26,3 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
-
-app.include_router(jobs.router)
-app.include_router(information_cv.router)
-app.include_router(images_me.router)
-app.include_router(informationme.router)
-app.include_router(readmore.router)
-app.include_router(tools.router)
-app.include_router(project.router)
-app.include_router(technologies.router)
-app.include_router(images.router)
-app.include_router(download_project.router)
-app.include_router(contact.router)

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from api.response import ApiErrorData
 from core.common.jwt import create_access_token, create_refresh_token, decode_refresh_token
 from core.handler.auth.response import AuthTokensResult
-from core.repository.psql.users.one_by_id import one_by_id_psql
+from core.repository.psql.users.one import one_by_id_psql
 
 
 def handler_refresh(
@@ -34,8 +34,8 @@ def handler_refresh(
             AuthTokensResult(
                 id_user=user.id,
                 type=user.type,
-                access_token=create_access_token(user.id, extra_claims={"role": user.type}),
-                refresh_token=create_refresh_token(user.id, extra_claims={"role": user.type}),
+                access_token=create_access_token(user.id),
+                refresh_token=create_refresh_token(user.id),
             ),
             None,
             True,
