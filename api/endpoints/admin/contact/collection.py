@@ -1,6 +1,7 @@
 from dataclasses import asdict
+from datetime import datetime
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -9,6 +10,7 @@ from api.middleware.Authentication import JWTAuthenticationMiddleware
 from api.response import ApiErrorData, ApiErrorResponse, ApiResponse
 from api.schemas.contact.response import ContactResponseData
 from core.handler.contact.collection import handler_collection_contact
+from core.repository.psql.contact.collection import DEFAULT_LIMIT
 from database.psql.database import get_db
 
 router = APIRouter()
@@ -26,11 +28,21 @@ router = APIRouter()
     tags=["Admin/Contact"],
 )
 def api_admin_collection_contact(
+    limit: int = Query(default=DEFAULT_LIMIT, gt=0, le=100),
+    is_read: bool | None = Query(default=None),
+    created_from: datetime | None = Query(default=None),
+    created_to: datetime | None = Query(default=None),
     db: Session = Depends(get_db),
     _current_user: dict = Depends(JWTAuthenticationMiddleware(roles=["admin"])),
 ) -> ApiResponse[list[ContactResponseData], None] | JSONResponse:
     try:
-        result, error, ok = handler_collection_contact(db_session=db)
+        result, error, ok = handler_collection_contact(
+            limit=limit,
+            is_read=is_read,
+            created_from=created_from,
+            created_to=created_to,
+            db_session=db,
+        )
         if not ok:
             return JSONResponse(status_code=400, content=ApiErrorResponse(status_code=400, data=error).model_dump())
         return ApiResponse(status_code=200, data=[ContactResponseData(**asdict(item)) for item in result])
