@@ -8,6 +8,7 @@ dependencies = [
     "uvicorn[standard]>=0.30",
     "sqlalchemy>=2.0",
     "psycopg2-binary>=2.9",
+    "alembic>=1.13",
     "pydantic>=2.0",
     "pydantic-settings>=2.4",
     "python-decouple>=3.8",
@@ -40,7 +41,12 @@ include = ["DataBase*", "JWT*", "routers*", "api*", "core*", "config*", "databas
 [tool.ruff]
 line-length = 120
 target-version = "py312"
+extend-exclude = ["alembic/versions"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
 ignore = ["B008"]
+
+[tool.ruff.lint.per-file-ignores]
+# Matches the ARCHITEKTURA.md-documented filename (api/middleware/Authentication.py)
+"api/middleware/Authentication.py" = ["N999"]

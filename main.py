@@ -1,20 +1,24 @@
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from routers.authentication import auth
-from routers.Home import jobs, information_cv, images_me
+from fastapi.staticfiles import StaticFiles
+
+from api.exception_handlers import register_exception_handlers
+from api.router import api_router
 from routers.AboutMe import informationme, readmore
-from routers.Tools import tools
-from routers.Projects import project, technologies, images, download_project
 from routers.Contact import contact
+
+# Old, not-yet-migrated domains — see docs/3.2-3.5-*.md
+from routers.Home import images_me, information_cv, jobs
+from routers.Projects import download_project, images, project, technologies
+from routers.Tools import tools
 
 app = FastAPI()
 
+register_exception_handlers(app)
+
 app.mount("/file", StaticFiles(directory="file"), name="file")
 
-origins = [
-    
-]
+origins = []
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,7 +28,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
+app.include_router(api_router)
+
 app.include_router(jobs.router)
 app.include_router(information_cv.router)
 app.include_router(images_me.router)
@@ -36,4 +41,3 @@ app.include_router(technologies.router)
 app.include_router(images.router)
 app.include_router(download_project.router)
 app.include_router(contact.router)
-

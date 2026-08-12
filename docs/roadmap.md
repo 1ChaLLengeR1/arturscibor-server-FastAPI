@@ -9,7 +9,7 @@
 - [x] [1 — Branch master → main](1-branch-main-done.md)
 - [x] [2 — Tooling: pyproject.toml, uv, pytest, Makefile](2-tooling-uv-pytest-makefile-done.md)
 - [x] [3 — Szkielet warstwowy api/ core/ database/ config/](3-layered-architecture-done.md)
-  - [ ] [3.1 — Sekcja: authentication](3.1-auth-section.md)
+  - [x] [3.1 — Sekcja: authentication](3.1-auth-section-done.md)
   - [ ] [3.2 — Sekcja: contact](3.2-contact-section.md)
   - [ ] [3.3 — Sekcja: tools](3.3-tools-section.md)
   - [ ] [3.4 — Sekcje: aboutme + home (scalenie duplikatu)](3.4-aboutme-home-section.md)

@@ -4,16 +4,7 @@ from DataBase.db import Base
 import uuid
 
 
-class Users(Base):
-    __tablename__ = "users"
-
-    id = Column(String, primary_key=True, default=uuid.uuid4)
-    login = Column(String)
-    password = Column(String)
-    type = Column(String)
-
-    class Config:
-        orm_mode = True
+# Users moved to database/psql/models/users.py (docs/3.1-auth-section.md)
 
 
 class CurriculumVitae(Base):

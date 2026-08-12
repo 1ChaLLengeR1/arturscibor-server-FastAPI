@@ -6,15 +6,15 @@ import jwt
 from config.settings import settings
 
 
-def create_access_token(subject: str) -> str:
+def create_access_token(subject: str, extra_claims: dict[str, Any] | None = None) -> str:
     expire = datetime.now(UTC) + timedelta(hours=settings.access_token_expire_hours)
-    payload = {"sub": subject, "exp": expire}
+    payload = {"sub": subject, "exp": expire, **(extra_claims or {})}
     return jwt.encode(payload, settings.secret_admin_token, algorithm=settings.algorithm)
 
 
-def create_refresh_token(subject: str) -> str:
+def create_refresh_token(subject: str, extra_claims: dict[str, Any] | None = None) -> str:
     expire = datetime.now(UTC) + timedelta(hours=settings.refresh_token_expire_hours)
-    payload = {"sub": subject, "exp": expire}
+    payload = {"sub": subject, "exp": expire, **(extra_claims or {})}
     return jwt.encode(payload, settings.refresh_admin_token, algorithm=settings.algorithm)
 
 
