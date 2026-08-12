@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Usage: infra/scripts/database/restart.sh local
+# Full local schema reset: downgrade to base, drop everything, DELETE all
+# existing Alembic version files, regenerate a single fresh migration via
+# autogenerate, then reapply. Only makes sense for local dev — refuses to
+# run against anything else, since deleting migration history against a
+# shared database would be a real mess.
+set -euo pipefail
+
+ENV_NAME="${1:?Usage: restart.sh local}"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+
+if [[ "$ENV_NAME" != "local" ]]; then
+  echo "restart.sh only runs against 'local' — it deletes migration version files, never run it against a shared database." >&2
+  exit 1
+fi
+
+ENV_FILE="$REPO_ROOT/env/${ENV_NAME}.env"
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "Missing $ENV_FILE" >&2
+  exit 1
+fi
+
+set -a
+# shellcheck disable=SC1090
+source "$ENV_FILE"
+set +a
+
+for var in ARTURSCIBOR_BACKEND_DB_HOST ARTURSCIBOR_BACKEND_DB_PORT ARTURSCIBOR_BACKEND_DB_USER \
+           ARTURSCIBOR_BACKEND_DB_PASSWORD ARTURSCIBOR_BACKEND_DB_NAME; do
+  if [[ -z "${!var:-}" ]]; then
+    echo "Missing required variable: $var" >&2
+    exit 1
+  fi
+done
+
+cd "$REPO_ROOT"
+
+echo "Downgrading to base..."
+ENV_MODE="$ENV_NAME" uv run alembic downgrade base || true
+
+export PGPASSWORD="$ARTURSCIBOR_BACKEND_DB_PASSWORD"
+PSQL=(psql -h "$ARTURSCIBOR_BACKEND_DB_HOST" -p "$ARTURSCIBOR_BACKEND_DB_PORT" \
+      -U "$ARTURSCIBOR_BACKEND_DB_USER" -d "$ARTURSCIBOR_BACKEND_DB_NAME" -v ON_ERROR_STOP=1)
+
+echo "Dropping everything (database_down.sql)..."
+"${PSQL[@]}" -f "$REPO_ROOT/database/psql/sql/database_down.sql"
+
+echo "Deleting existing migration version files..."
+rm -f "$REPO_ROOT"/alembic/versions/*.py
+
+echo "Generating a fresh init migration from current models..."
+ENV_MODE="$ENV_NAME" uv run alembic revision --autogenerate -m "init"
+
+echo "Applying it..."
+"$REPO_ROOT/infra/scripts/database/migration_up.sh" "$ENV_NAME"

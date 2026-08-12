@@ -4,6 +4,11 @@
 # interpolates ${...} in values the same way docker compose does (but NOT
 # in mapping keys, hence `name:` below instead of a variable in the secret's
 # own key).
+#
+# Postgres is native on the host (not a Swarm service) — same as local dev.
+# The backend reaches it via host.docker.internal, so set
+# ARTURSCIBOR_BACKEND_DB_HOST=host.docker.internal in the Doppler "prod"
+# config (see docs/4-infra-done.md).
 
 services:
   backend:
@@ -12,9 +17,10 @@ services:
     secrets:
       - source: env_prod
         target: env_prod
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - backend_network_traefik
-      - backend_production
     deploy:
       replicas: 1
       labels:
@@ -24,27 +30,9 @@ services:
         - "traefik.http.routers.arturscibor-backend.tls.certresolver=letsencrypt"
         - "traefik.http.services.arturscibor-backend.loadbalancer.server.port=8000"
 
-  postgres:
-    image: postgres:16-alpine
-    entrypoint: ["/bin/sh", "-c", "set -a && . /run/secrets/env_prod && export POSTGRES_USER=$$ARTURSCIBOR_BACKEND_DB_USER POSTGRES_PASSWORD=$$ARTURSCIBOR_BACKEND_DB_PASSWORD POSTGRES_DB=$$ARTURSCIBOR_BACKEND_DB_NAME && set +a && docker-entrypoint.sh postgres"]
-    secrets:
-      - source: env_prod
-        target: env_prod
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - backend_production
-    deploy:
-      replicas: 1
-
 networks:
   backend_network_traefik:
     external: true
-  backend_production:
-    external: true
-
-volumes:
-  postgres_data:
 
 secrets:
   env_prod:

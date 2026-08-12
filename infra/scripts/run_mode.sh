@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Usage: infra/scripts/run_mode.sh {local|prod}
+# Usage: infra/scripts/run_mode.sh <local|prod>
 # Switches the ENV_MODE default in config/app.py (local convenience only —
 # the running server/container should set ENV_MODE directly instead).
 set -euo pipefail
 
-MODE="${1:?Usage: run_mode.sh {local|prod}}"
+MODE="${1:?Usage: run_mode.sh <local|prod>}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
 case "$MODE" in
