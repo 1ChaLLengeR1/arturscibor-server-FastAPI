@@ -273,18 +273,51 @@ Rekomendacja: (a).
 
 ## 11. Kolejność prac
 
-- [ ] Rozstrzygnąć pkt. 9 (6 pytań)
-- [ ] `core/common/filenames.py` (`sanitize_filename`) + test
-- [ ] `database/psql/models/file.py` + migracja alembic
-- [ ] `core/repository/psql/file/{response,init,one,update,delete,collection}.py` + testy
-- [ ] `core/service/file/upload.py` + testy
-- [ ] `core/handler/file/{init,upload,confirm,delete,collection}.py` + testy
-- [ ] `api/schemas/file/schemas.py`
-- [ ] `api/endpoints/file/{init,upload,confirm,delete,collection}.py` +
+- [x] Rozstrzygnąć pkt. 9 (6 pytań) — patrz pkt. 12
+- [x] `core/common/filenames.py` (`sanitize_filename`) + test
+- [x] `database/psql/models/file.py` + migracja alembic
+- [x] `core/repository/psql/file/{response,init,one,update,delete,collection}.py` + testy
+- [x] `core/service/file/upload.py` + testy
+- [x] `core/handler/file/{init,upload,confirm,delete,collection}.py`
+- [x] `api/schemas/file/{response,init,collection,delete}.py`
+- [x] `api/endpoints/admin/file/{init,upload,confirm,delete,collection}.py` +
       `api/endpoints/urls.py` + `api/router.py` + testy e2e
-- [ ] `config/settings.py` (`static_root`) + `main.py` (mount `/static`,
+- [x] `config/settings.py` (`static_root`) + `main.py` (mount `/static`,
       usunięcie starego `/file` i `file/.gitkeep`)
-- [ ] `.gitignore` dla zawartości `static/files/**` (poza placeholderem;
-      obecny `static/files/__init__.py` → do zamiany na `.gitkeep`, spójnie
-      z `file/.gitkeep`)
-- [ ] Podłączenie pod 3.3/3.4/3.5 (osobne zadania, poza zakresem tego pliku)
+- [x] `.gitignore` dla zawartości `static/files/**`
+- [x] Podłączenie pod 3.3 (`tools`, patrz `docs/3.3-tools-section-done.md`)
+      — 3.4/3.5 zostają osobnymi zadaniami
+
+## 12. Status końcowy — decyzje i odchylenia od planu wstępnego
+
+Pytania z pkt. 9/10 (wersji roboczej tego dokumentu) rozstrzygnięte wprost
+przez Artura, implementacja odbiega od pierwotnej propozycji "1:1 z
+referencją" w kilku miejscach:
+
+- **`FileType`**: tylko `PHOTO`/`VIDEO` — bez `GIF`/`AUDIO`, bez
+  `DOCUMENT`(PDF) mimo starego kodu CV. Jeśli PDF-y (CV, download projektu)
+  okażą się potrzebne w 3.4/3.5, to osobna decyzja wtedy.
+- **`user_id`/ownership — usunięte całkowicie**, nie tylko z modelu `File`
+  (jak zakładał plan wstępny), tożsamość admina idzie wyłącznie przez
+  `JWTAuthenticationMiddleware(roles=["admin"])` na endpointzie, bez
+  przechowywania jej gdziekolwiek.
+- **Struktura endpointów**: `api/endpoints/admin/file/` (nie
+  `api/endpoints/file/` jak w referencji) — spójnie z lokalną konwencją
+  `admin/contact`. URL-e: `ADMIN_FILE_*` pod `/api/v1/admin/file/...`, nie
+  `FILES_*` pod `/api/v1/files/...` z referencji.
+- **`api/schemas/file/`**: rozbite na `{response,init,collection,delete}.py`
+  zamiast jednego `schemas.py` — zgodnie z konwencją "większe domeny
+  dostają osobne pliki" (`docs/3.5-projects-section.md`).
+- **Rate limiting**: pominięty (rekomendacja z pkt. 8), do osobnego brancha.
+- **CORS w `main.py`**: przy okazji zaostrzony — skończona lista originów
+  (`settings.frontend_url` + localhost dev) i metod/nagłówków zamiast
+  `allow_origins=[]` + `allow_methods/headers=["*"]`.
+- **Testy**: napisane w całości (repository, service, e2e API), z realnym
+  plikiem testowym w `tests/files_for_tests/` — nie odłożone "na koniec",
+  bo to była pierwsza migrowana domena z realnym I/O na dysku i chciałem
+  mieć pewność co do flow init→upload→confirm zanim `tools` (3.3) zaczęło
+  go używać.
+
+Kod zlintowany (`ruff check .` czysty), `main.py` importuje się i
+wystawia poprawny zestaw tras, migracja zweryfikowana offline w obie
+strony. Odpalenie migracji i testów na żywej bazie — po Twojej stronie.

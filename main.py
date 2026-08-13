@@ -16,7 +16,7 @@ app = FastAPI()
 register_exception_handlers(app)
 
 # Uploady: jedno źródło prawdy dla ścieżki (settings.static_root, absolutna) i dla
-# listy katalogów (ALLOWED_DIRECTORIES z modelu File) — patrz docs/6-file-storage-section.md.
+# listy katalogów (ALLOWED_DIRECTORIES z modelu File) — patrz docs/6-file-storage-section-done.md.
 _STATIC_ROOT = settings.static_root
 _STATIC_ROOT.mkdir(parents=True, exist_ok=True)
 for _directory in sorted(ALLOWED_DIRECTORIES):

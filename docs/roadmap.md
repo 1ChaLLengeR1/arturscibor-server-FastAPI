@@ -11,12 +11,12 @@
 - [x] [3 — Szkielet warstwowy api/ core/ database/ config/](3-layered-architecture-done.md)
   - [x] [3.1 — Sekcja: authentication](3.1-auth-section-done.md)
   - [x] [3.2 — Sekcja: contact](3.2-contact-section-done.md)
-  - [ ] [3.3 — Sekcja: tools](3.3-tools-section.md)
+  - [x] [3.3 — Sekcja: tools](3.3-tools-section-done.md)
   - [ ] [3.4 — Sekcje: aboutme + home (scalenie duplikatu)](3.4-aboutme-home-section.md)
   - [ ] [3.5 — Sekcja: projects](3.5-projects-section.md)
 - [x] [4 — Infra: ansible/ dockerfiles/ scripts/](4-infra-done.md)
 - [ ] [5 — CI/CD (GitHub Actions)](5-ci-cd.md)
-- [ ] [6 — Sekcja: file (magazyn plików, lokalny S3)](6-file-storage-section.md)
+- [x] [6 — Sekcja: file (magazyn plików, lokalny S3)](6-file-storage-section-done.md)
 
 ## Kolejność sekcji w pkt. 3 (od najprostszej do najbardziej złożonej)
 
@@ -26,9 +26,10 @@
 4. `aboutme` + `home` — trzeba najpierw rozstrzygnąć duplikat `upload-me`/`information-me`
 5. `projects` — największa domena (sub-resource: images, technologies, download)
 
-> Uwaga: mimo numeru **6**, [`file`](6-file-storage-section.md) trzeba zrobić
-> **przed** 3.3–3.5 — te sekcje potrzebują wspólnego magazynu plików zamiast
-> dzisiejszego `open(path, "wb")` rozrzuconego po `routers/`.
+> Uwaga: mimo numeru **6**, [`file`](6-file-storage-section-done.md) trzeba
+> zrobić **przed** 3.3–3.5 — te sekcje potrzebują wspólnego magazynu plików
+> zamiast dzisiejszego `open(path, "wb")` rozrzuconego po `routers/`. Zrobione
+> — `tools` (3.3) już z niego korzysta.
 
 ## Referencje
 
