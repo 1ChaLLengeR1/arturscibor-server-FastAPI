@@ -97,7 +97,12 @@ class TestToolsE2E:
         # 1. Admin tworzy tool — bez zdjęć.
         create_response = client.post(
             ADMIN_TOOLS_CREATE,
-            json={"name": "Python", "information": "Backend language", "progress": 70, "numeric": 1},
+            json={
+                "name": {"pl": "Python", "en": "Python"},
+                "information": {"pl": "Język backendowy", "en": "Backend language"},
+                "progress": 70,
+                "numeric": 1,
+            },
             headers=headers,
         )
         assert create_response.status_code == 201

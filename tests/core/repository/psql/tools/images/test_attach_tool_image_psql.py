@@ -26,7 +26,7 @@ class TestAttachToolImagePsql:
 
     def test_attach03_same_file_twice_returns_conflict(self, db_session):
         tool = create_test_tool(db_session)
-        other_tool = create_test_tool(db_session, name="Other")
+        other_tool = create_test_tool(db_session, name={"pl": "Other", "en": "Other"})
         file = create_test_file(db_session)
         attach_tool_image_psql(str(tool.id), str(file.id), sort_order=0, db_session=db_session)
 

@@ -3,6 +3,7 @@ from sqlalchemy.engine import Row
 from sqlalchemy.orm import Session
 
 from api.response import ApiErrorData
+from api.schemas.common.multi_lang import DEFAULT_LANGUAGE_CODE
 from core.repository.psql.tools.response import ToolResponse, _to_tool_response
 from database.psql.database import managed_session
 from database.psql.models.file import File
@@ -19,7 +20,7 @@ def _load_tool_images(db: Session, tool_id: str) -> list[Row]:
 
 
 def one_tool_by_id_psql(
-    tool_id: str, db_session: Session | None = None
+    tool_id: str, lang: str = DEFAULT_LANGUAGE_CODE, db_session: Session | None = None
 ) -> tuple[ToolResponse | None, ApiErrorData | None, bool]:
     try:
         with managed_session(db_session) as (db, _):
@@ -38,7 +39,7 @@ def one_tool_by_id_psql(
 
             images = _load_tool_images(db, tool_id)
 
-            return _to_tool_response(tool, [(image, file) for image, file in images]), None, True
+            return _to_tool_response(tool, [(image, file) for image, file in images], lang=lang), None, True
     except Exception as e:
         return (
             None,

@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from api.response import ApiErrorData
+from api.schemas.common.multi_lang import DEFAULT_LANGUAGE_CODE
 from core.repository.psql.tools.one import _load_tool_images
 from core.repository.psql.tools.response import ToolResponse, _to_tool_response
 from database.psql.database import managed_session
@@ -12,6 +13,7 @@ _UNSET = object()
 
 def update_tool_psql(
     tool_id: str,
+    language_code: str = DEFAULT_LANGUAGE_CODE,
     name: str | None = _UNSET,
     information: str | None = _UNSET,
     progress: int | None = _UNSET,
@@ -19,6 +21,9 @@ def update_tool_psql(
     link: str | None = _UNSET,
     db_session: Session | None = None,
 ) -> tuple[ToolResponse | None, ApiErrorData | None, bool]:
+    """`name`/`information` edytują JEDEN język na raz (`language_code`, default
+    `pl`) w kolumnie JSONB — docs/7-i18n-section.md pkt. 6. `progress`/`numeric`/
+    `link` są nietłumaczalne, edytowane niezależnie od `language_code`."""
     try:
         with managed_session(db_session) as (db, _):
             tool = db.execute(select(Tools).where(Tools.id == tool_id)).scalar_one_or_none()
@@ -35,9 +40,29 @@ def update_tool_psql(
                 )
 
             if name is not _UNSET:
-                tool.name = name
+                # name jest wymagane per-język (JSONB kolumna sama jest NOT NULL) —
+                # jawny null wyczyściłby tylko ten klucz, zostawiając dziurę, którą
+                # fallback (docs/7 pkt. 4) i tak by próbował załatać z pl. Prościej
+                # to odrzucić od razu.
+                if not name:
+                    return (
+                        None,
+                        ApiErrorData(
+                            message="name cannot be empty",
+                            type_module="update_tool_psql",
+                            type_error="invalid_value",
+                            key_type_error="InvalidValue",
+                        ),
+                        False,
+                    )
+                tool.name = {**tool.name, language_code: name}
             if information is not _UNSET:
-                tool.information = information
+                current = dict(tool.information or {})
+                if information is None:
+                    current.pop(language_code, None)
+                else:
+                    current[language_code] = information
+                tool.information = current or None
             if progress is not _UNSET:
                 tool.progress = progress
             if numeric is not _UNSET:
@@ -48,7 +73,7 @@ def update_tool_psql(
             db.flush()
             db.refresh(tool)
             images = _load_tool_images(db, tool_id)
-            return _to_tool_response(tool, [(image, file) for image, file in images]), None, True
+            return _to_tool_response(tool, [(image, file) for image, file in images], lang=language_code), None, True
     except Exception as e:
         return (
             None,

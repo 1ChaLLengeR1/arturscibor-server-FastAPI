@@ -6,8 +6,8 @@ from core.repository.psql.tools.response import ToolResponse
 
 
 def handler_create_tool(
-    name: str,
-    information: str | None,
+    name: dict[str, str],
+    information: dict[str, str] | None,
     progress: int | None,
     numeric: int | None,
     link: str | None,

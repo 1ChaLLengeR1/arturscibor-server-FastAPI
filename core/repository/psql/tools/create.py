@@ -1,14 +1,15 @@
 from sqlalchemy.orm import Session
 
 from api.response import ApiErrorData
+from api.schemas.common.multi_lang import DEFAULT_LANGUAGE_CODE
 from core.repository.psql.tools.response import ToolResponse, _to_tool_response
 from database.psql.database import managed_session
 from database.psql.models.tools import Tools
 
 
 def create_tool_psql(
-    name: str,
-    information: str | None,
+    name: dict[str, str],
+    information: dict[str, str] | None,
     progress: int | None,
     numeric: int | None,
     link: str | None,
@@ -20,7 +21,7 @@ def create_tool_psql(
             db.add(tool)
             db.flush()
             db.refresh(tool)
-            return _to_tool_response(tool), None, True
+            return _to_tool_response(tool, lang=DEFAULT_LANGUAGE_CODE), None, True
     except Exception as e:
         return (
             None,

@@ -124,7 +124,7 @@ class TestApiAdminAttachToolImage:
         )
         headers = admin_auth_headers(db_session)
         tool = create_test_tool(db_session)
-        other_tool = create_test_tool(db_session, name="Other")
+        other_tool = create_test_tool(db_session, name={"pl": "Other", "en": "Other"})
         file_id = _confirmed_file_id(client, headers)
         client.post(ADMIN_TOOLS_IMAGE_ATTACH.format(tool_id=tool.id), json={"file_id": file_id}, headers=headers)
 

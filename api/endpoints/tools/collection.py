@@ -1,11 +1,12 @@
 from dataclasses import asdict
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from api.endpoints.urls import TOOLS_COLLECTION
 from api.response import ApiErrorData, ApiErrorResponse, ApiResponse
+from api.schemas.common.multi_lang import DEFAULT_LANGUAGE_CODE
 from api.schemas.tools.response import ToolResponseData
 from core.handler.tools.collection import handler_collection_tools
 from database.psql.database import get_db
@@ -21,9 +22,12 @@ router = APIRouter()
     status_code=200,
     tags=["Tools"],
 )
-def api_collection_tools(db: Session = Depends(get_db)) -> ApiResponse[list[ToolResponseData], None] | JSONResponse:
+def api_collection_tools(
+    lang: str = Query(default=DEFAULT_LANGUAGE_CODE),
+    db: Session = Depends(get_db),
+) -> ApiResponse[list[ToolResponseData], None] | JSONResponse:
     try:
-        result, error, ok = handler_collection_tools(db_session=db)
+        result, error, ok = handler_collection_tools(lang=lang, db_session=db)
         if not ok:
             return JSONResponse(status_code=400, content=ApiErrorResponse(status_code=400, data=error).model_dump())
         return ApiResponse(status_code=200, data=[ToolResponseData(**asdict(item)) for item in result])

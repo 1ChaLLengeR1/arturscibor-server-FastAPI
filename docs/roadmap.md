@@ -12,11 +12,12 @@
   - [x] [3.1 — Sekcja: authentication](3.1-auth-section-done.md)
   - [x] [3.2 — Sekcja: contact](3.2-contact-section-done.md)
   - [x] [3.3 — Sekcja: tools](3.3-tools-section-done.md)
-  - [ ] [3.4 — Sekcje: aboutme + home (scalenie duplikatu)](3.4-aboutme-home-section.md)
+  - [ ] [3.4 — Sekcje: aboutme + work (markdown + karuzele, wzorem tools)](3.4-aboutme-home-section.md)
   - [ ] [3.5 — Sekcja: projects](3.5-projects-section.md)
 - [x] [4 — Infra: ansible/ dockerfiles/ scripts/](4-infra-done.md)
 - [ ] [5 — CI/CD (GitHub Actions)](5-ci-cd.md)
 - [x] [6 — Sekcja: file (magazyn plików, lokalny S3)](6-file-storage-section-done.md)
+- [ ] [7 — Wielojęzyczność (pl/en, rozszerzalne)](7-i18n-section.md)
 
 ## Kolejność sekcji w pkt. 3 (od najprostszej do najbardziej złożonej)
 
@@ -30,6 +31,11 @@
 > zrobić **przed** 3.3–3.5 — te sekcje potrzebują wspólnego magazynu plików
 > zamiast dzisiejszego `open(path, "wb")` rozrzuconego po `routers/`. Zrobione
 > — `tools` (3.3) już z niego korzysta.
+>
+> Podobnie **7** ([wielojęzyczność](7-i18n-section.md)) — dotyka już
+> zbudowanego `tools` (retrofit: `name`/`information` → `JSONB`
+> `{"pl": ..., "en": ...}`) i musi wejść w `aboutme`/`work` (3.4) od razu,
+> nie doklejona później. Ustalone: zaczynamy od 7, potem 3.4.
 
 ## Referencje
 

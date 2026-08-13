@@ -5,7 +5,8 @@ from sqlalchemy.orm import sessionmaker
 
 import database.psql.database as database_module
 from api.endpoints.admin.tools.update import router as admin_tools_update_router
-from api.endpoints.urls import ADMIN_TOOLS_UPDATE
+from api.endpoints.tools.collection import router as tools_collection_router
+from api.endpoints.urls import ADMIN_TOOLS_UPDATE, TOOLS_COLLECTION
 from core.common.jwt import create_access_token
 from tests.api.endpoints.tools.helper import admin_auth_headers, make_client
 from tests.core.repository.psql.tools.helper import create_test_tool
@@ -24,7 +25,7 @@ def _standalone_sessions_use_test_db(monkeypatch, test_engine):
 class TestApiAdminUpdateTool:
     def test_update01_returns_200(self, db_session):
         client = make_client(db_session, admin_tools_update_router)
-        tool = create_test_tool(db_session, name="Python")
+        tool = create_test_tool(db_session, name={"pl": "Python", "en": "Python"})
 
         response = client.put(
             ADMIN_TOOLS_UPDATE.format(tool_id=tool.id),
@@ -69,3 +70,45 @@ class TestApiAdminUpdateTool:
         )
 
         assert response.status_code == 403
+
+    def test_update05_language_code_edits_only_that_language(self, db_session):
+        client = make_client(db_session, admin_tools_update_router, tools_collection_router)
+        headers = admin_auth_headers(db_session)
+        tool = create_test_tool(db_session, name={"pl": "Wąż", "en": "Snake"})
+
+        response = client.put(
+            ADMIN_TOOLS_UPDATE.format(tool_id=tool.id),
+            json={"language_code": "en", "name": "Python Snake"},
+            headers=headers,
+        )
+
+        assert response.status_code == 200
+        assert response.json()["data"]["name"] == "Python Snake"
+
+        pl_collection = client.get(TOOLS_COLLECTION, params={"lang": "pl"})
+        assert pl_collection.json()["data"][0]["name"] == "Wąż"
+
+    def test_update06_empty_name_returns_422(self, db_session):
+        client = make_client(db_session, admin_tools_update_router)
+        tool = create_test_tool(db_session)
+
+        response = client.put(
+            ADMIN_TOOLS_UPDATE.format(tool_id=tool.id),
+            json={"name": ""},
+            headers=admin_auth_headers(db_session),
+        )
+
+        assert response.status_code == 422
+
+    def test_update07_null_name_returns_400(self, db_session):
+        client = make_client(db_session, admin_tools_update_router)
+        tool = create_test_tool(db_session)
+
+        response = client.put(
+            ADMIN_TOOLS_UPDATE.format(tool_id=tool.id),
+            json={"name": None},
+            headers=admin_auth_headers(db_session),
+        )
+
+        assert response.status_code == 400
+        assert response.json()["data"]["key_type_error"] == "InvalidValue"
