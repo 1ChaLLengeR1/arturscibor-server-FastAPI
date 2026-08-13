@@ -16,6 +16,7 @@
   - [ ] [3.5 — Sekcja: projects](3.5-projects-section.md)
 - [x] [4 — Infra: ansible/ dockerfiles/ scripts/](4-infra-done.md)
 - [ ] [5 — CI/CD (GitHub Actions)](5-ci-cd.md)
+- [ ] [6 — Sekcja: file (magazyn plików, lokalny S3)](6-file-storage-section.md)
 
 ## Kolejność sekcji w pkt. 3 (od najprostszej do najbardziej złożonej)
 
@@ -24,6 +25,10 @@
 3. `tools` — prosty CRUD jednej tabeli
 4. `aboutme` + `home` — trzeba najpierw rozstrzygnąć duplikat `upload-me`/`information-me`
 5. `projects` — największa domena (sub-resource: images, technologies, download)
+
+> Uwaga: mimo numeru **6**, [`file`](6-file-storage-section.md) trzeba zrobić
+> **przed** 3.3–3.5 — te sekcje potrzebują wspólnego magazynu plików zamiast
+> dzisiejszego `open(path, "wb")` rozrzuconego po `routers/`.
 
 ## Referencje
 
