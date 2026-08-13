@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.engine import Row
 from sqlalchemy.orm import Session
 
 from api.response import ApiErrorData
@@ -6,6 +7,15 @@ from core.repository.psql.tools.response import ToolResponse, _to_tool_response
 from database.psql.database import managed_session
 from database.psql.models.file import File
 from database.psql.models.tools import ToolImage, Tools
+
+
+def _load_tool_images(db: Session, tool_id: str) -> list[Row]:
+    return db.execute(
+        select(ToolImage, File)
+        .join(File, File.id == ToolImage.file_id)
+        .where(ToolImage.tool_id == tool_id)
+        .order_by(ToolImage.sort_order)
+    ).all()
 
 
 def one_tool_by_id_psql(
@@ -26,12 +36,7 @@ def one_tool_by_id_psql(
                     False,
                 )
 
-            images = db.execute(
-                select(ToolImage, File)
-                .join(File, File.id == ToolImage.file_id)
-                .where(ToolImage.tool_id == tool_id)
-                .order_by(ToolImage.sort_order)
-            ).all()
+            images = _load_tool_images(db, tool_id)
 
             return _to_tool_response(tool, [(image, file) for image, file in images]), None, True
     except Exception as e:

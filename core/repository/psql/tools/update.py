@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from api.response import ApiErrorData
+from core.repository.psql.tools.one import _load_tool_images
 from core.repository.psql.tools.response import ToolResponse, _to_tool_response
 from database.psql.database import managed_session
 from database.psql.models.tools import Tools
@@ -46,7 +47,8 @@ def update_tool_psql(
 
             db.flush()
             db.refresh(tool)
-            return _to_tool_response(tool), None, True
+            images = _load_tool_images(db, tool_id)
+            return _to_tool_response(tool, [(image, file) for image, file in images]), None, True
     except Exception as e:
         return (
             None,
