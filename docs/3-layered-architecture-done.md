@@ -98,7 +98,7 @@ Wymagało ukończenia [2 — tooling](2-tooling-uv-pytest-makefile-done.md).
 - [ ] [3.1 — authentication](3.1-auth-section.md)
 - [ ] [3.2 — contact](3.2-contact-section.md)
 - [ ] [3.3 — tools](3.3-tools-section.md)
-- [ ] [3.4 — aboutme + home](3.4-aboutme-home-section.md)
+- [ ] [3.4 — aboutme + home](3.4-aboutme-home-section-done.md)
 - [ ] [3.5 — projects](3.5-projects-section.md)
 
 ## Status
