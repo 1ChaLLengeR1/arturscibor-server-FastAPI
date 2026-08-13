@@ -8,5 +8,5 @@ from database.psql.models.projects import (  # noqa: F401
     Projects,
     TechnologiesProject,
 )
-from database.psql.models.tools import Tools  # noqa: F401
+from database.psql.models.tools import ToolImage, Tools  # noqa: F401
 from database.psql.models.users import Users  # noqa: F401
