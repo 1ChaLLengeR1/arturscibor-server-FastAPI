@@ -1,6 +1,8 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from config.app import ENV_PATH
+from config.app import BASE_DIR, ENV_PATH
 
 
 class Settings(BaseSettings):
@@ -19,6 +21,15 @@ class Settings(BaseSettings):
     algorithm: str
 
     server: str
+
+    # Produkcyjny origin frontendu (docs/README.md) — jedyny nie-localhost origin
+    # dopuszczony przez CORS w main.py. Nadpisywalny przez env, gdyby domena się zmieniła.
+    frontend_url: str = "https://arturscibor.pl"
+
+    # Absolutna ścieżka do katalogu z uploadami — nigdy względna do CWD procesu,
+    # bo gunicorn/testy startują z różnych katalogów i zapis trafiałby wtedy
+    # w inne miejsce niż mount StaticFiles w main.py.
+    static_root: Path = BASE_DIR / "static" / "files"
 
 
 settings = Settings()

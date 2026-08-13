@@ -24,6 +24,11 @@ htmlcov/
 # state ansible-vault enforces, not something gitignore can catch)
 infra/ansible/inventory.ini
 
+# Uploads (docs/6-file-storage-section.md) — keep the directories, not their
+# contents; ALLOWED_DIRECTORIES subfolders are recreated by main.py at startup.
+static/files/*/*
+!static/files/*/.gitkeep
+
 # IDE
 .idea/
 
