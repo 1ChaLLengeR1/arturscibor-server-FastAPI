@@ -2,9 +2,11 @@
 # Usage: infra/scripts/database/restart.sh local
 # Full local schema reset: downgrade to base, drop everything, DELETE all
 # existing Alembic version files, regenerate a single fresh migration via
-# autogenerate, then reapply. Only makes sense for local dev — refuses to
-# run against anything else, since deleting migration history against a
-# shared database would be a real mess.
+# autogenerate, reapply, then reseed singleton rows (autogenerate only
+# captures schema diffs, not the hand-written seed INSERTs the deleted
+# migrations had — see update_database.sh). Only makes sense for local dev —
+# refuses to run against anything else, since deleting migration history
+# against a shared database would be a real mess.
 set -euo pipefail
 
 ENV_NAME="${1:?Usage: restart.sh local}"
@@ -54,3 +56,6 @@ ENV_MODE="$ENV_NAME" uv run alembic revision --autogenerate -m "init"
 
 echo "Applying it..."
 "$REPO_ROOT/infra/scripts/database/migration_up.sh" "$ENV_NAME"
+
+echo "Reseeding singleton rows (autogenerate doesn't capture the old migrations' seed INSERTs)..."
+"$REPO_ROOT/infra/scripts/database/update_database.sh" "$ENV_NAME"
