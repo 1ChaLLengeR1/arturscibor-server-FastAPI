@@ -31,7 +31,7 @@ def handler_get_cv(
                     message="CV file is missing on disk",
                     type_module="handler_get_cv",
                     type_error="missing_on_disk",
-                    key_type_error="MissingOnDisk",
+                    key_type_error="CvFileMissingOnDisk",
                 ),
                 False,
             )

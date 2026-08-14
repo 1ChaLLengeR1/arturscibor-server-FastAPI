@@ -8,12 +8,11 @@ from api.endpoints.urls import ADMIN_FILE_UPLOAD
 from api.middleware.Authentication import JWTAuthenticationMiddleware
 from api.response import ApiErrorData, ApiErrorResponse, ApiResponse
 from api.schemas.file.response import FileItemData
+from api.status import STATUS_BY_KEY
 from core.handler.file.upload import handler_upload_file
 from database.psql.database import get_db
 
 router = APIRouter()
-
-_STATUS_BY_KEY = {"NotFound": 404}
 
 
 @router.put(
@@ -52,7 +51,7 @@ async def api_admin_upload_file(
             db_session=db,
         )
         if not ok:
-            status_code = _STATUS_BY_KEY.get(error.key_type_error, 400)
+            status_code = STATUS_BY_KEY.get(error.key_type_error, 400)
             return JSONResponse(
                 status_code=status_code, content=ApiErrorResponse(status_code=status_code, data=error).model_dump()
             )

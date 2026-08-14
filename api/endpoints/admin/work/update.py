@@ -9,12 +9,11 @@ from api.middleware.Authentication import JWTAuthenticationMiddleware
 from api.response import ApiErrorData, ApiErrorResponse, ApiResponse
 from api.schemas.work.response import WorkResponseData
 from api.schemas.work.update import WorkUpdatePayload
+from api.status import STATUS_BY_KEY
 from core.handler.work.update import handler_update_work
 from database.psql.database import get_db
 
 router = APIRouter()
-
-_STATUS_BY_KEY = {"NotFound": 404}
 
 
 @router.put(
@@ -38,7 +37,7 @@ def api_admin_update_work(
     try:
         result, error, ok = handler_update_work(work_id, db_session=db, **body.model_dump(exclude_unset=True))
         if not ok:
-            status_code = _STATUS_BY_KEY.get(error.key_type_error, 400)
+            status_code = STATUS_BY_KEY.get(error.key_type_error, 400)
             return JSONResponse(
                 status_code=status_code, content=ApiErrorResponse(status_code=status_code, data=error).model_dump()
             )

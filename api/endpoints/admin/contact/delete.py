@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from api.endpoints.urls import ADMIN_CONTACT_DELETE
 from api.middleware.Authentication import JWTAuthenticationMiddleware
 from api.response import ApiErrorData, ApiErrorResponse, ApiResponse
+from api.status import STATUS_BY_KEY
 from core.handler.contact.delete import handler_delete_contact
 from database.psql.database import get_db
 
@@ -31,7 +32,7 @@ def api_admin_delete_contact(
     try:
         _, error, ok = handler_delete_contact(contact_id, db_session=db)
         if not ok:
-            status_code = 404 if error.key_type_error == "NotFound" else 400
+            status_code = STATUS_BY_KEY.get(error.key_type_error, 400)
             return JSONResponse(
                 status_code=status_code, content=ApiErrorResponse(status_code=status_code, data=error).model_dump()
             )

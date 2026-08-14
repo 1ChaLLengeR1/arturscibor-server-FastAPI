@@ -69,7 +69,7 @@ class TestApiGetCv:
         response = client.get(CV)
 
         assert response.status_code == 404
-        assert response.json()["data"]["key_type_error"] == "MissingOnDisk"
+        assert response.json()["data"]["key_type_error"] == "CvFileMissingOnDisk"
 
     def test_get05_no_auth_required(self, db_session, static_root):
         file = create_test_file(

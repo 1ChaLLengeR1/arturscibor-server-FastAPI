@@ -8,6 +8,7 @@ from api.endpoints.urls import ABOUT_ME
 from api.response import ApiErrorData, ApiErrorResponse, ApiResponse
 from api.schemas.aboutme.response import AboutMeResponseData
 from api.schemas.common.multi_lang import DEFAULT_LANGUAGE_CODE
+from api.status import STATUS_BY_KEY
 from core.handler.aboutme.get import handler_get_about_me
 from database.psql.database import get_db
 
@@ -32,7 +33,7 @@ def api_get_about_me(
     try:
         result, error, ok = handler_get_about_me(lang=lang, db_session=db)
         if not ok:
-            status_code = 404 if error.key_type_error == "NotFound" else 400
+            status_code = STATUS_BY_KEY.get(error.key_type_error, 400)
             return JSONResponse(
                 status_code=status_code, content=ApiErrorResponse(status_code=status_code, data=error).model_dump()
             )

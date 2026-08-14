@@ -4,12 +4,11 @@ from sqlalchemy.orm import Session
 
 from api.endpoints.urls import CV
 from api.response import ApiErrorData, ApiErrorResponse
+from api.status import STATUS_BY_KEY
 from core.handler.cv.get import handler_get_cv
 from database.psql.database import get_db
 
 router = APIRouter()
-
-_STATUS_BY_KEY = {"NotFound": 404, "MissingOnDisk": 404}
 
 
 @router.get(
@@ -27,7 +26,7 @@ def api_get_cv(db: Session = Depends(get_db)) -> FileResponse | JSONResponse:
     try:
         result, error, ok = handler_get_cv(db_session=db)
         if not ok:
-            status_code = _STATUS_BY_KEY.get(error.key_type_error, 400)
+            status_code = STATUS_BY_KEY.get(error.key_type_error, 400)
             return JSONResponse(
                 status_code=status_code, content=ApiErrorResponse(status_code=status_code, data=error).model_dump()
             )

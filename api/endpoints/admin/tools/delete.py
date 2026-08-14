@@ -5,12 +5,11 @@ from sqlalchemy.orm import Session
 from api.endpoints.urls import ADMIN_TOOLS_DELETE
 from api.middleware.Authentication import JWTAuthenticationMiddleware
 from api.response import ApiErrorData, ApiErrorResponse, ApiResponse
+from api.status import STATUS_BY_KEY
 from core.handler.tools.delete import handler_delete_tool
 from database.psql.database import get_db
 
 router = APIRouter()
-
-_STATUS_BY_KEY = {"NotFound": 404}
 
 
 @router.delete(
@@ -33,7 +32,7 @@ def api_admin_delete_tool(
     try:
         _, error, ok = handler_delete_tool(tool_id, db_session=db)
         if not ok:
-            status_code = _STATUS_BY_KEY.get(error.key_type_error, 400)
+            status_code = STATUS_BY_KEY.get(error.key_type_error, 400)
             return JSONResponse(
                 status_code=status_code, content=ApiErrorResponse(status_code=status_code, data=error).model_dump()
             )
