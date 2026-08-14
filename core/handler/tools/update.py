@@ -1,12 +1,14 @@
 from sqlalchemy.orm import Session
 
 from api.response import ApiErrorData
+from api.schemas.common.multi_lang import DEFAULT_LANGUAGE_CODE
 from core.repository.psql.tools.response import ToolResponse
 from core.repository.psql.tools.update import _UNSET, update_tool_psql
 
 
 def handler_update_tool(
     tool_id: str,
+    language_code: str = DEFAULT_LANGUAGE_CODE,
     name: str | None = _UNSET,
     information: str | None = _UNSET,
     progress: int | None = _UNSET,
@@ -17,6 +19,7 @@ def handler_update_tool(
     try:
         result, err, ok = update_tool_psql(
             tool_id,
+            language_code=language_code,
             name=name,
             information=information,
             progress=progress,

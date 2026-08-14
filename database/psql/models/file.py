@@ -19,13 +19,18 @@ class FileStatus(enum.StrEnum):
 class FileType(enum.StrEnum):
     PHOTO = "photo"
     VIDEO = "video"
+    DOCUMENT = "document"  # CV — docs/3.4-aboutme-home-section.md pkt. 4.4
 
 
-ALLOWED_DIRECTORIES: set[str] = {"projects", "aboutme", "tools"}
+# "work" (logo firm) i "cv" dopisane przy okazji domen work/cv — docs/3.4 pkt. 4.3.
+# "work" był potrzebny już wcześniej (logo firmy), a został tu przeoczony przy
+# implementacji work — naprawione teraz, żeby testy logo faktycznie przechodziły.
+ALLOWED_DIRECTORIES: set[str] = {"projects", "aboutme", "tools", "work", "cv"}
 
 ALLOWED_EXTENSIONS: dict[FileType, set[str]] = {
     FileType.PHOTO: {".jpg", ".jpeg", ".png", ".webp"},
     FileType.VIDEO: {".mp4", ".mov", ".avi", ".mkv", ".webm", ".m4v"},
+    FileType.DOCUMENT: {".pdf"},
 }
 
 MAX_FILE_SIZE_BYTES: int = 25 * 1024 * 1024  # 25 MB

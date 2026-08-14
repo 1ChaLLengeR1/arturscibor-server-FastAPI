@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import Uuid
 
@@ -12,8 +13,10 @@ class Tools(Base):
     __tablename__ = "tools"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    name: Mapped[str | None] = mapped_column(String)
-    information: Mapped[str | None] = mapped_column(String)
+    # {"pl": "...", "en": "...", ...} — docs/7-i18n-section.md. pl/en zawsze obecne
+    # (wymuszone przez MultiLangText na wejściu), dodatkowe języki opcjonalne.
+    name: Mapped[dict[str, str]] = mapped_column(JSONB)
+    information: Mapped[dict[str, str] | None] = mapped_column(JSONB)
     progress: Mapped[int | None] = mapped_column(Integer)
     numeric: Mapped[int | None] = mapped_column(Integer)
     link: Mapped[str | None] = mapped_column(String)

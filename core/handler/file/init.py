@@ -15,6 +15,7 @@ from database.psql.models.file import ALLOWED_DIRECTORIES, ALLOWED_EXTENSIONS, F
 _MIME_FAMILY_BY_FILE_TYPE: dict[FileType, str] = {
     FileType.PHOTO: "image/",
     FileType.VIDEO: "video/",
+    FileType.DOCUMENT: "application/pdf",
 }
 
 

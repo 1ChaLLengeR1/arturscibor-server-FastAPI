@@ -1,15 +1,16 @@
 from sqlalchemy.orm import Session
 
 from api.response import ApiErrorData
+from api.schemas.common.multi_lang import DEFAULT_LANGUAGE_CODE
 from core.repository.psql.tools.collection import collection_tools_psql
 from core.repository.psql.tools.response import ToolResponse
 
 
 def handler_collection_tools(
-    db_session: Session | None = None,
+    lang: str = DEFAULT_LANGUAGE_CODE, db_session: Session | None = None
 ) -> tuple[list[ToolResponse] | None, ApiErrorData | None, bool]:
     try:
-        result, err, ok = collection_tools_psql(db_session=db_session)
+        result, err, ok = collection_tools_psql(lang=lang, db_session=db_session)
         if not ok:
             return None, err, False
         return result, None, True

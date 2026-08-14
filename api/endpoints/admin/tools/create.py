@@ -33,7 +33,12 @@ def api_admin_create_tool(
 ) -> ApiResponse[ToolResponseData, None] | JSONResponse:
     try:
         result, error, ok = handler_create_tool(
-            body.name, body.information, body.progress, body.numeric, body.link, db_session=db
+            body.name.model_dump(),
+            body.information.model_dump() if body.information else None,
+            body.progress,
+            body.numeric,
+            body.link,
+            db_session=db,
         )
         if not ok:
             return JSONResponse(status_code=400, content=ApiErrorResponse(status_code=400, data=error).model_dump())

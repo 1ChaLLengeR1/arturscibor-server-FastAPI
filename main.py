@@ -25,13 +25,15 @@ app.mount("/static", StaticFiles(directory=str(_STATIC_ROOT)), name="static")
 
 # Restrykcyjnie: skończona lista originów (nie []  — to blokowałoby też legalny
 # frontend; nie "*" — niebezpieczne w połączeniu z allow_credentials), skończona
-# lista metod/nagłówków zamiast "*".
+# lista metod/nagłówków zamiast "*". expose_headers/Content-Disposition — bez tego
+# JS (fetch/axios) nie odczyta nazwy pliku z odpowiedzi GET /api/v1/cv (FileResponse).
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:5173", settings.frontend_url],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "Accept"],
+    expose_headers=["Content-Disposition"],
 )
 
 app.include_router(api_router)

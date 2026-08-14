@@ -1,4 +1,4 @@
-.PHONY: install run_app run_test clean migration_up migration_down migration_restart vault_encrypt vault_decrypt vault_view
+.PHONY: install run_app run_test clean migration_up migration_down migration_restart update_database vault_encrypt vault_decrypt vault_view
 
 ENV ?= local
 
@@ -23,6 +23,9 @@ migration_down:
 
 migration_restart:
 	./infra/scripts/database/restart.sh $(ENV)
+
+update_database:
+	./infra/scripts/database/update_database.sh $(ENV)
 
 vault_encrypt:
 	infra/scripts/vault.sh encrypt

@@ -40,3 +40,20 @@ class TestOneToolByIdPsql:
 
         assert ok is False and result is None
         assert err.key_type_error == "NotFound"
+
+    def test_one05_resolves_requested_language(self, db_session):
+        tool = create_test_tool(db_session, name={"pl": "Wąż", "en": "Snake"})
+
+        result, _, ok = one_tool_by_id_psql(str(tool.id), lang="en", db_session=db_session)
+
+        assert ok is True
+        assert result.name == "Snake"
+
+    def test_one06_falls_back_to_default_language_when_missing(self, db_session):
+        # "de" nigdy nie było w JSONB (tylko pl/en) — fallback na DEFAULT_LANGUAGE_CODE.
+        tool = create_test_tool(db_session, name={"pl": "Python", "en": "Python (EN)"})
+
+        result, _, ok = one_tool_by_id_psql(str(tool.id), lang="de", db_session=db_session)
+
+        assert ok is True
+        assert result.name == "Python"

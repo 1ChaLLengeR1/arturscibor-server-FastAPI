@@ -5,6 +5,7 @@ import database.psql.database as database_module
 from api.endpoints.admin.tools.create import router as admin_tools_create_router
 from api.endpoints.urls import ADMIN_TOOLS_CREATE
 from core.common.jwt import create_access_token
+from database.psql.models.tools import Tools
 from tests.api.endpoints.tools.helper import admin_auth_headers, make_client
 from tests.core.repository.psql.users.helper import create_test_user
 
@@ -24,7 +25,12 @@ class TestApiAdminCreateTool:
 
         response = client.post(
             ADMIN_TOOLS_CREATE,
-            json={"name": "Python", "information": "Backend language", "progress": 80, "numeric": 1},
+            json={
+                "name": {"pl": "Python", "en": "Python"},
+                "information": {"pl": "Język backendowy", "en": "Backend language"},
+                "progress": 80,
+                "numeric": 1,
+            },
             headers=admin_auth_headers(db_session),
         )
 
@@ -35,7 +41,9 @@ class TestApiAdminCreateTool:
         client = make_client(db_session, admin_tools_create_router)
 
         response = client.post(
-            ADMIN_TOOLS_CREATE, json={"name": "Python"}, headers=admin_auth_headers(db_session)
+            ADMIN_TOOLS_CREATE,
+            json={"name": {"pl": "Python", "en": "Python"}},
+            headers=admin_auth_headers(db_session),
         )
 
         assert response.json()["data"]["images"] == []
@@ -51,7 +59,9 @@ class TestApiAdminCreateTool:
         client = make_client(db_session, admin_tools_create_router)
 
         response = client.post(
-            ADMIN_TOOLS_CREATE, json={"name": "Python", "progress": 150}, headers=admin_auth_headers(db_session)
+            ADMIN_TOOLS_CREATE,
+            json={"name": {"pl": "Python", "en": "Python"}, "progress": 150},
+            headers=admin_auth_headers(db_session),
         )
 
         assert response.status_code == 422
@@ -59,7 +69,7 @@ class TestApiAdminCreateTool:
     def test_create05_unauthenticated_returns_401(self, db_session):
         client = make_client(db_session, admin_tools_create_router)
 
-        response = client.post(ADMIN_TOOLS_CREATE, json={"name": "Python"})
+        response = client.post(ADMIN_TOOLS_CREATE, json={"name": {"pl": "Python", "en": "Python"}})
 
         assert response.status_code == 401
 
@@ -70,7 +80,34 @@ class TestApiAdminCreateTool:
         token = create_access_token(str(guest.id))
 
         response = client.post(
-            ADMIN_TOOLS_CREATE, json={"name": "Python"}, headers={"Authorization": f"Bearer {token}"}
+            ADMIN_TOOLS_CREATE,
+            json={"name": {"pl": "Python", "en": "Python"}},
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         assert response.status_code == 403
+
+    def test_create07_missing_en_key_returns_422(self, db_session):
+        client = make_client(db_session, admin_tools_create_router)
+
+        response = client.post(
+            ADMIN_TOOLS_CREATE,
+            json={"name": {"pl": "Python"}},
+            headers=admin_auth_headers(db_session),
+        )
+
+        assert response.status_code == 422
+
+    def test_create08_extra_language_is_accepted_and_stored(self, db_session):
+        client = make_client(db_session, admin_tools_create_router)
+
+        response = client.post(
+            ADMIN_TOOLS_CREATE,
+            json={"name": {"pl": "Python", "en": "Python", "de": "Python"}},
+            headers=admin_auth_headers(db_session),
+        )
+
+        assert response.status_code == 201
+        tool_id = response.json()["data"]["id"]
+        stored = db_session.query(Tools).filter(Tools.id == tool_id).one()
+        assert stored.name == {"pl": "Python", "en": "Python", "de": "Python"}
