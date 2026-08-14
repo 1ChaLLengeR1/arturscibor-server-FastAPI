@@ -22,3 +22,22 @@ def _to_cv_response(model: CurriculumVitae, file: File | None = None) -> Curricu
         created_at=model.created_at,
         updated_at=model.updated_at,
     )
+
+
+@dataclass
+class CurriculumVitaeFileResponse:
+    file_id: str
+    directory: str
+    name: str
+    original_name: str
+    mime_type: str | None
+
+
+def _to_cv_file_response(file: File) -> CurriculumVitaeFileResponse:
+    return CurriculumVitaeFileResponse(
+        file_id=str(file.id),
+        directory=file.directory,
+        name=file.name,
+        original_name=file.original_name,
+        mime_type=file.mime_type,
+    )

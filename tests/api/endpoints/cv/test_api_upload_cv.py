@@ -9,6 +9,7 @@ from api.endpoints.admin.file.upload import router as admin_file_upload_router
 from api.endpoints.urls import ADMIN_CV_UPLOAD, ADMIN_FILE_CONFIRM, ADMIN_FILE_INIT, ADMIN_FILE_UPLOAD
 from config.settings import settings
 from core.common.jwt import create_access_token
+from database.psql.models.file import FileType
 from tests.api.endpoints.cv.helper import admin_auth_headers, make_client
 from tests.core.repository.psql.cv.helper import create_test_cv
 from tests.core.repository.psql.file.helper import create_test_file
@@ -78,7 +79,7 @@ class TestApiAdminUploadCv:
         client = make_client(db_session, admin_cv_upload_router)
         headers = admin_auth_headers(db_session)
         create_test_cv(db_session)
-        file = create_test_file(db_session, original_name="cv.pdf")
+        file = create_test_file(db_session, original_name="cv.pdf", file_type=FileType.DOCUMENT)
 
         response = client.put(ADMIN_CV_UPLOAD, json={"file_id": str(file.id)}, headers=headers)
 

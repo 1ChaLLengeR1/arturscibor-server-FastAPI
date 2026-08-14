@@ -1,38 +1,37 @@
-from dataclasses import asdict
-
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy.orm import Session
 
 from api.endpoints.urls import CV
-from api.response import ApiErrorData, ApiErrorResponse, ApiResponse
-from api.schemas.cv.response import CurriculumVitaeResponseData
+from api.response import ApiErrorData, ApiErrorResponse
 from core.handler.cv.get import handler_get_cv
 from database.psql.database import get_db
 
 router = APIRouter()
 
+_STATUS_BY_KEY = {"NotFound": 404, "MissingOnDisk": 404}
+
 
 @router.get(
     CV,
-    summary="[Public] Get current CV metadata",
-    response_model=ApiResponse[CurriculumVitaeResponseData, None],
+    summary="[Public] Download the current CV file",
+    response_model=None,
     responses={
-        404: {"model": ApiErrorResponse, "description": "Not found"},
+        404: {"model": ApiErrorResponse, "description": "CV not set or missing on disk"},
         500: {"model": ApiErrorResponse, "description": "Unexpected server error"},
     },
     status_code=200,
     tags=["CV"],
 )
-def api_get_cv(db: Session = Depends(get_db)) -> ApiResponse[CurriculumVitaeResponseData, None] | JSONResponse:
+def api_get_cv(db: Session = Depends(get_db)) -> FileResponse | JSONResponse:
     try:
         result, error, ok = handler_get_cv(db_session=db)
         if not ok:
-            status_code = 404 if error.key_type_error == "NotFound" else 400
+            status_code = _STATUS_BY_KEY.get(error.key_type_error, 400)
             return JSONResponse(
                 status_code=status_code, content=ApiErrorResponse(status_code=status_code, data=error).model_dump()
             )
-        return ApiResponse(status_code=200, data=CurriculumVitaeResponseData(**asdict(result)))
+        return FileResponse(path=result.path, filename=result.filename, media_type=result.media_type)
     except Exception as e:
         error = ApiErrorData(
             message=str(e), type_module="api_get_cv", type_error="exception", key_type_error="Exception"

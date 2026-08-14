@@ -46,11 +46,9 @@ class TestCvE2E:
         # 1. Singleton seedowany "migracją" (helper, bo testy nie odpalają alembic).
         create_test_cv(db_session)
 
-        # 2. Publiczny widok przed uploadem - null url.
+        # 2. Publiczny widok przed uploadem - brak przypiętego pliku, 404.
         initial_public = client.get(CV)
-        assert initial_public.status_code == 200
-        assert initial_public.json()["data"]["file_id"] is None
-        assert initial_public.json()["data"]["url"] is None
+        assert initial_public.status_code == 404
 
         # 3. Pełny cykl file domain: init -> upload -> confirm dla dokumentu PDF.
         init_response = client.post(
@@ -84,11 +82,11 @@ class TestCvE2E:
         first_saved = next((static_root / "cv").iterdir())
         assert first_saved.is_file()
 
-        # 5. Publiczny widok po uploadzie.
+        # 5. Publiczny widok po uploadzie - serwuje bajty pliku.
         public_after_upload = client.get(CV)
         assert public_after_upload.status_code == 200
-        assert public_after_upload.json()["data"]["file_id"] == first_file_id
-        assert public_after_upload.json()["data"]["url"].startswith("/static/cv/")
+        assert public_after_upload.content == _PDF_BYTES
+        assert 'filename="cv.pdf"' in public_after_upload.headers["content-disposition"]
 
         # 6. Podmiana CV - drugi dokument, stary plik kasowany z dysku.
         init_response_2 = client.post(
@@ -116,4 +114,5 @@ class TestCvE2E:
         assert not first_saved.exists()
 
         final_public = client.get(CV)
-        assert final_public.json()["data"]["file_id"] == second_file_id
+        assert final_public.status_code == 200
+        assert 'filename="cv-v2.pdf"' in final_public.headers["content-disposition"]
