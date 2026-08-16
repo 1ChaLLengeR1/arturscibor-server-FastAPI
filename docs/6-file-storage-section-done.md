@@ -307,7 +307,7 @@ referencją" w kilku miejscach:
   `FILES_*` pod `/api/v1/files/...` z referencji.
 - **`api/schemas/file/`**: rozbite na `{response,init,collection,delete}.py`
   zamiast jednego `schemas.py` — zgodnie z konwencją "większe domeny
-  dostają osobne pliki" (`docs/3.5-projects-section.md`).
+  dostają osobne pliki" (`docs/3.5-projects-section-done.md`).
 - **Rate limiting**: pominięty (rekomendacja z pkt. 8), do osobnego brancha.
 - **CORS w `main.py`**: przy okazji zaostrzony — skończona lista originów
   (`settings.frontend_url` + localhost dev) i metod/nagłówków zamiast

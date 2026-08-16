@@ -37,3 +37,11 @@ ADMIN_WORK_ITEM_DELETE = "/api/v1/admin/work/{work_id}/items/{item_id}/delete"
 
 CV = "/api/v1/cv"
 ADMIN_CV_UPLOAD = "/api/v1/admin/cv/upload"
+
+PROJECTS_COLLECTION = "/api/v1/projects/collection"
+PROJECTS_ONE = "/api/v1/projects/{project_id}"
+ADMIN_PROJECTS_CREATE = "/api/v1/admin/projects/create"
+ADMIN_PROJECTS_UPDATE = "/api/v1/admin/projects/{project_id}/update"
+ADMIN_PROJECTS_DELETE = "/api/v1/admin/projects/{project_id}/delete"
+ADMIN_PROJECTS_IMAGE_ATTACH = "/api/v1/admin/projects/{project_id}/images"
+ADMIN_PROJECTS_IMAGE_DETACH = "/api/v1/admin/projects/{project_id}/images/{file_id}"

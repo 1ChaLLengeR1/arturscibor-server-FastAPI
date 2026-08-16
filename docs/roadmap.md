@@ -13,7 +13,7 @@
   - [x] [3.2 — Sekcja: contact](3.2-contact-section-done.md)
   - [x] [3.3 — Sekcja: tools](3.3-tools-section-done.md)
   - [x] [3.4 — Sekcje: aboutme + work + cv (markdown + karuzele, wzorem tools)](3.4-aboutme-home-section-done.md)
-  - [ ] [3.5 — Sekcja: projects](3.5-projects-section.md)
+  - [x] [3.5 — Sekcja: projects](3.5-projects-section-done.md)
 - [x] [4 — Infra: ansible/ dockerfiles/ scripts/](4-infra-done.md)
 - [ ] [5 — CI/CD (GitHub Actions)](5-ci-cd.md)
 - [x] [6 — Sekcja: file (magazyn plików, lokalny S3)](6-file-storage-section-done.md)
