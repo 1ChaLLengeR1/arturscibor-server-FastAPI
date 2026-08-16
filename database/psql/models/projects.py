@@ -1,52 +1,53 @@
+import enum
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, String, func
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import Uuid
 
 from database.psql.base import Base
 
 
+class ProjectLevel(enum.StrEnum):
+    BEGINNER = "beginner"
+    INTERMEDIATE = "intermediate"
+    ADVANCED = "advanced"
+    EXPERT = "expert"
+
+
 class Projects(Base):
     __tablename__ = "projects"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    name_project: Mapped[str | None] = mapped_column(String)
-    short_description: Mapped[str | None] = mapped_column(String)
-    file_path: Mapped[str | None] = mapped_column(String)
-    file_link: Mapped[str | None] = mapped_column(String)
-    completion_data: Mapped[datetime | None] = mapped_column(DateTime, server_default=func.now())
-    project_number: Mapped[int | None] = mapped_column(Integer)
-    level_advanced: Mapped[str | None] = mapped_column(String)
-    description: Mapped[str | None] = mapped_column(String)
-    link_page: Mapped[str | None] = mapped_column(String)
+    name: Mapped[str] = mapped_column(String)  # nietłumaczalne — nazwa własna, jak Work.company_name
+    # {"pl": "...", "en": "...", ...} — docs/7-i18n-section.md. pl/en zawsze obecne
+    # (wymuszone przez MultiLangText na wejściu), dodatkowe języki opcjonalne.
+    short_description: Mapped[dict[str, str] | None] = mapped_column(JSONB)
+    description: Mapped[dict[str, str] | None] = mapped_column(JSONB)
+    level: Mapped[ProjectLevel | None] = mapped_column(Enum(ProjectLevel, name="project_level"))
+    # Nazwy technologii nietłumaczalne — zwykła lista, nie JSONB (wzorem WorkItem.skills).
+    technologies: Mapped[list[str] | None] = mapped_column(ARRAY(String))
+    github_url: Mapped[str | None] = mapped_column(String)
+    live_url: Mapped[str | None] = mapped_column(String)
+    completed_at: Mapped[date | None] = mapped_column(Date)  # kiedy ukończony — ręczne pole domenowe, nie audyt
+    numeric: Mapped[int | None] = mapped_column(Integer)  # kolejność wyświetlania, wzorem Tools.numeric/Work.numeric
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
 
-class FileProjects(Base):
-    __tablename__ = "filesproject"
+class ProjectImage(Base):
+    """Łącznik projects<->files, wzorem ToolImage/AboutMeImage (docs/3.3, docs/3.4).
+    Jedna karuzela — bez podziału frontend/backend."""
 
-    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    id_project: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("projects.id"))
-    name: Mapped[str | None] = mapped_column(String)
-    path: Mapped[str | None] = mapped_column(String)
-    link: Mapped[str | None] = mapped_column(String)
-
-
-class ImagesProjects(Base):
-    __tablename__ = "imagesproject"
-
-    id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    id_project: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("projects.id"))
-    name: Mapped[str | None] = mapped_column(String)
-    path: Mapped[str | None] = mapped_column(String)
-    link: Mapped[str | None] = mapped_column(String)
-    type: Mapped[str | None] = mapped_column(String)
-
-
-class TechnologiesProject(Base):
-    __tablename__ = "technologiesproject"
+    __tablename__ = "project_images"
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    id_project: Mapped[uuid.UUID | None] = mapped_column(Uuid, ForeignKey("projects.id"))
-    name: Mapped[str | None] = mapped_column(String)
+    project_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("projects.id", ondelete="CASCADE"))
+    # unique: jeden plik należy do co najwyżej jednego projektu.
+    file_id: Mapped[uuid.UUID] = mapped_column(Uuid, ForeignKey("files.id", ondelete="CASCADE"), unique=True)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

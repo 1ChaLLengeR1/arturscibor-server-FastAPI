@@ -12,6 +12,11 @@ from api.endpoints.admin.file import confirm as admin_file_confirm
 from api.endpoints.admin.file import delete as admin_file_delete
 from api.endpoints.admin.file import init as admin_file_init
 from api.endpoints.admin.file import upload as admin_file_upload
+from api.endpoints.admin.projects import create as admin_projects_create
+from api.endpoints.admin.projects import delete as admin_projects_delete
+from api.endpoints.admin.projects import update as admin_projects_update
+from api.endpoints.admin.projects.images import attach as admin_projects_image_attach
+from api.endpoints.admin.projects.images import detach as admin_projects_image_detach
 from api.endpoints.admin.tools import create as admin_tools_create
 from api.endpoints.admin.tools import delete as admin_tools_delete
 from api.endpoints.admin.tools import update as admin_tools_update
@@ -29,6 +34,8 @@ from api.endpoints.auth import login as auth_login
 from api.endpoints.auth import refresh as auth_refresh
 from api.endpoints.contact import create as contact_create
 from api.endpoints.cv import get as cv_get
+from api.endpoints.projects import collection as projects_collection
+from api.endpoints.projects import one as projects_one
 from api.endpoints.tools import collection as tools_collection
 from api.endpoints.work import collection as work_collection
 
@@ -80,3 +87,12 @@ api_router.include_router(admin_work_item_delete.router)
 # CV (docs/3.4-aboutme-home-section.md)
 api_router.include_router(cv_get.router)
 api_router.include_router(admin_cv_upload.router)
+
+# Projects (docs/3.5-projects-section.md)
+api_router.include_router(projects_collection.router)
+api_router.include_router(projects_one.router)
+api_router.include_router(admin_projects_create.router)
+api_router.include_router(admin_projects_update.router)
+api_router.include_router(admin_projects_delete.router)
+api_router.include_router(admin_projects_image_attach.router)
+api_router.include_router(admin_projects_image_detach.router)

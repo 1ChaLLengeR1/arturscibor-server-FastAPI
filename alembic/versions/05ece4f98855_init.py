@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 15546e9d57b6
+Revision ID: 05ece4f98855
 Revises: 
-Create Date: 2026-08-14 09:43:56.236880
+Create Date: 2026-08-16 22:00:20.419423
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '15546e9d57b6'
+revision: str = '05ece4f98855'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -62,15 +62,17 @@ def upgrade() -> None:
     op.create_index('ix_files_status', 'files', ['status'], unique=False)
     op.create_table('projects',
     sa.Column('id', sa.Uuid(), nullable=False),
-    sa.Column('name_project', sa.String(), nullable=True),
-    sa.Column('short_description', sa.String(), nullable=True),
-    sa.Column('file_path', sa.String(), nullable=True),
-    sa.Column('file_link', sa.String(), nullable=True),
-    sa.Column('completion_data', sa.DateTime(), server_default=sa.text('now()'), nullable=True),
-    sa.Column('project_number', sa.Integer(), nullable=True),
-    sa.Column('level_advanced', sa.String(), nullable=True),
-    sa.Column('description', sa.String(), nullable=True),
-    sa.Column('link_page', sa.String(), nullable=True),
+    sa.Column('name', sa.String(), nullable=False),
+    sa.Column('short_description', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+    sa.Column('description', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+    sa.Column('level', sa.Enum('BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT', name='project_level'), nullable=True),
+    sa.Column('technologies', postgresql.ARRAY(sa.String()), nullable=True),
+    sa.Column('github_url', sa.String(), nullable=True),
+    sa.Column('live_url', sa.String(), nullable=True),
+    sa.Column('completed_at', sa.Date(), nullable=True),
+    sa.Column('numeric', sa.Integer(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('tools',
@@ -113,31 +115,16 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['file_id'], ['files.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_table('filesproject',
+    op.create_table('project_images',
     sa.Column('id', sa.Uuid(), nullable=False),
-    sa.Column('id_project', sa.Uuid(), nullable=True),
-    sa.Column('name', sa.String(), nullable=True),
-    sa.Column('path', sa.String(), nullable=True),
-    sa.Column('link', sa.String(), nullable=True),
-    sa.ForeignKeyConstraint(['id_project'], ['projects.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('imagesproject',
-    sa.Column('id', sa.Uuid(), nullable=False),
-    sa.Column('id_project', sa.Uuid(), nullable=True),
-    sa.Column('name', sa.String(), nullable=True),
-    sa.Column('path', sa.String(), nullable=True),
-    sa.Column('link', sa.String(), nullable=True),
-    sa.Column('type', sa.String(), nullable=True),
-    sa.ForeignKeyConstraint(['id_project'], ['projects.id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_table('technologiesproject',
-    sa.Column('id', sa.Uuid(), nullable=False),
-    sa.Column('id_project', sa.Uuid(), nullable=True),
-    sa.Column('name', sa.String(), nullable=True),
-    sa.ForeignKeyConstraint(['id_project'], ['projects.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.Column('project_id', sa.Uuid(), nullable=False),
+    sa.Column('file_id', sa.Uuid(), nullable=False),
+    sa.Column('sort_order', sa.Integer(), server_default='0', nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.ForeignKeyConstraint(['file_id'], ['files.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('file_id')
     )
     op.create_table('tools_images',
     sa.Column('id', sa.Uuid(), nullable=False),
@@ -184,9 +171,7 @@ def downgrade() -> None:
     op.drop_table('work_items')
     op.drop_table('work')
     op.drop_table('tools_images')
-    op.drop_table('technologiesproject')
-    op.drop_table('imagesproject')
-    op.drop_table('filesproject')
+    op.drop_table('project_images')
     op.drop_table('curriculum_vitae')
     op.drop_table('about_me_images')
     op.drop_index(op.f('ix_users_login'), table_name='users')
