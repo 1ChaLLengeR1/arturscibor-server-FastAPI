@@ -3,7 +3,7 @@
 -- (the ones with a ForeignKey) are dropped before their parents, though
 -- CASCADE would handle the ordering either way.
 
--- Current schema (docs/3.4-*, docs/3.5-projects-section.md, docs/6-file-storage-section-done.md).
+-- Current schema (docs/3.4-*, docs/3.5-projects-section-done.md, docs/6-file-storage-section-done.md).
 DROP TABLE IF EXISTS project_images CASCADE;
 DROP TABLE IF EXISTS about_me_images CASCADE;
 DROP TABLE IF EXISTS tools_images CASCADE;

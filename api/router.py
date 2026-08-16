@@ -88,7 +88,7 @@ api_router.include_router(admin_work_item_delete.router)
 api_router.include_router(cv_get.router)
 api_router.include_router(admin_cv_upload.router)
 
-# Projects (docs/3.5-projects-section.md)
+# Projects (docs/3.5-projects-section-done.md)
 api_router.include_router(projects_collection.router)
 api_router.include_router(projects_one.router)
 api_router.include_router(admin_projects_create.router)

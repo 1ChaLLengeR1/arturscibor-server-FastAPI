@@ -38,7 +38,7 @@ def update_project_psql(
 ) -> tuple[ProjectResponse | None, ApiErrorData | None, bool]:
     """`short_description`/`description` edytują JEDEN język na raz (`language_code`,
     default `pl`) w kolumnie JSONB — docs/7-i18n-section.md pkt. 6. `name` jest
-    nietłumaczalne (docs/3.5-projects-section.md pkt. 3), edytowane niezależnie
+    nietłumaczalne (docs/3.5-projects-section-done.md pkt. 3), edytowane niezależnie
     od `language_code`, tak jak `level`/`technologies`/`github_url`/`live_url`/
     `completed_at`/`numeric`."""
     try:
