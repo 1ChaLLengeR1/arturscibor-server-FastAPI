@@ -4,7 +4,8 @@
 # existing Alembic version files, regenerate a single fresh migration via
 # autogenerate, reapply, then reseed singleton rows (autogenerate only
 # captures schema diffs, not the hand-written seed INSERTs the deleted
-# migrations had — see update_database.sh). Only makes sense for local dev —
+# migrations had — see update_database.sh) and the admin user (see
+# seed_admin.sql). Only makes sense for local dev —
 # refuses to run against anything else, since deleting migration history
 # against a shared database would be a real mess.
 set -euo pipefail
@@ -59,3 +60,6 @@ echo "Applying it..."
 
 echo "Reseeding singleton rows (autogenerate doesn't capture the old migrations' seed INSERTs)..."
 "$REPO_ROOT/infra/scripts/database/update_database.sh" "$ENV_NAME"
+
+echo "Seeding admin user (database/psql/sql/seed_admin.sql)..."
+"${PSQL[@]}" -f "$REPO_ROOT/database/psql/sql/seed_admin.sql"
