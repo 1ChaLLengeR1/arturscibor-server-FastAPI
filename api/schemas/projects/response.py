@@ -19,6 +19,8 @@ class ProjectResponseData(BaseModel):
     github_url: str | None
     live_url: str | None
     completed_at: date | None
+    started_at: date | None
+    is_support: bool | None
     numeric: int | None
     images: list[ProjectImageData]
     created_at: datetime

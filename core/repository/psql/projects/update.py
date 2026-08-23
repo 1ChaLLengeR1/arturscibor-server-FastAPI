@@ -33,6 +33,8 @@ def update_project_psql(
     github_url: str | None = _UNSET,
     live_url: str | None = _UNSET,
     completed_at: date | None = _UNSET,
+    started_at: date | None = _UNSET,
+    is_support: bool | None = _UNSET,
     numeric: int | None = _UNSET,
     db_session: Session | None = None,
 ) -> tuple[ProjectResponse | None, ApiErrorData | None, bool]:
@@ -40,7 +42,7 @@ def update_project_psql(
     default `pl`) w kolumnie JSONB — docs/7-i18n-section.md pkt. 6. `name` jest
     nietłumaczalne (docs/3.5-projects-section-done.md pkt. 3), edytowane niezależnie
     od `language_code`, tak jak `level`/`technologies`/`github_url`/`live_url`/
-    `completed_at`/`numeric`."""
+    `completed_at`/`started_at`/`is_support`/`numeric`."""
     try:
         with managed_session(db_session) as (db, _):
             project = db.execute(select(Projects).where(Projects.id == project_id)).scalar_one_or_none()
@@ -87,6 +89,10 @@ def update_project_psql(
                 project.live_url = live_url
             if completed_at is not _UNSET:
                 project.completed_at = completed_at
+            if started_at is not _UNSET:
+                project.started_at = started_at
+            if is_support is not _UNSET:
+                project.is_support = is_support
             if numeric is not _UNSET:
                 project.numeric = numeric
 

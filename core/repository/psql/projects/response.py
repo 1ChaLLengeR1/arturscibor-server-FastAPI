@@ -32,6 +32,8 @@ class ProjectResponse:
     github_url: str | None
     live_url: str | None
     completed_at: date | None
+    started_at: date | None
+    is_support: bool | None
     numeric: int | None
     images: list[ProjectImageResponse]
     created_at: datetime
@@ -55,6 +57,8 @@ def _to_project_response(
         github_url=model.github_url,
         live_url=model.live_url,
         completed_at=model.completed_at,
+        started_at=model.started_at,
+        is_support=model.is_support,
         numeric=model.numeric,
         images=[_to_project_image_response(image, file) for image, file in images],
         created_at=model.created_at,

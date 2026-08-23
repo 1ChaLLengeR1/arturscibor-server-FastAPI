@@ -41,6 +41,8 @@ def api_admin_create_project(
             body.github_url,
             body.live_url,
             body.completed_at,
+            body.started_at,
+            body.is_support,
             body.numeric,
             db_session=db,
         )

@@ -2,7 +2,7 @@ import enum
 import uuid
 from datetime import date, datetime
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, Date, DateTime, Enum, ForeignKey, Integer, String, func
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import Uuid
@@ -32,6 +32,8 @@ class Projects(Base):
     github_url: Mapped[str | None] = mapped_column(String)
     live_url: Mapped[str | None] = mapped_column(String)
     completed_at: Mapped[date | None] = mapped_column(Date)  # kiedy ukończony — ręczne pole domenowe, nie audyt
+    started_at: Mapped[date | None] = mapped_column(Date)  # kiedy rozpoczęty — ręczne pole domenowe, jak completed_at
+    is_support: Mapped[bool | None] = mapped_column(Boolean)  # czy nadal wspierany/monitorowany, czy zlecenie zamknięte
     numeric: Mapped[int | None] = mapped_column(Integer)  # kolejność wyświetlania, wzorem Tools.numeric/Work.numeric
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

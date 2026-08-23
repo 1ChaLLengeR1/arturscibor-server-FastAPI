@@ -17,6 +17,8 @@ def handler_create_project(
     github_url: str | None,
     live_url: str | None,
     completed_at: date | None,
+    started_at: date | None,
+    is_support: bool | None,
     numeric: int | None,
     db_session: Session | None = None,
 ) -> tuple[ProjectResponse | None, ApiErrorData | None, bool]:
@@ -30,6 +32,8 @@ def handler_create_project(
             github_url,
             live_url,
             completed_at,
+            started_at,
+            is_support,
             numeric,
             db_session=db_session,
         )

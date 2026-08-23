@@ -21,4 +21,6 @@ class ProjectUpdatePayload(BaseModel):
     github_url: str | None = Field(default=None, max_length=500)
     live_url: str | None = Field(default=None, max_length=500)
     completed_at: date | None = None
+    started_at: date | None = None
+    is_support: bool | None = None
     numeric: int | None = None

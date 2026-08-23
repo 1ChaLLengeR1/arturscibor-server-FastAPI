@@ -18,6 +18,8 @@ def create_project_psql(
     github_url: str | None,
     live_url: str | None,
     completed_at: date | None,
+    started_at: date | None,
+    is_support: bool | None,
     numeric: int | None,
     db_session: Session | None = None,
 ) -> tuple[ProjectResponse | None, ApiErrorData | None, bool]:
@@ -32,6 +34,8 @@ def create_project_psql(
                 github_url=github_url,
                 live_url=live_url,
                 completed_at=completed_at,
+                started_at=started_at,
+                is_support=is_support,
                 numeric=numeric,
             )
             db.add(project)

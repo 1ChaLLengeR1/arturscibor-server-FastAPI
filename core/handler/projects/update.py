@@ -20,6 +20,8 @@ def handler_update_project(
     github_url: str | None = _UNSET,
     live_url: str | None = _UNSET,
     completed_at: date | None = _UNSET,
+    started_at: date | None = _UNSET,
+    is_support: bool | None = _UNSET,
     numeric: int | None = _UNSET,
     db_session: Session | None = None,
 ) -> tuple[ProjectResponse | None, ApiErrorData | None, bool]:
@@ -35,6 +37,8 @@ def handler_update_project(
             github_url=github_url,
             live_url=live_url,
             completed_at=completed_at,
+            started_at=started_at,
+            is_support=is_support,
             numeric=numeric,
             db_session=db_session,
         )
