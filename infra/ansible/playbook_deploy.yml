@@ -6,7 +6,7 @@
     - secrets.yml
   vars:
     ansible_become_pass: "{{ become_password }}"
-    repo_url: "https://github.com/arturscibor/arturscibor_backend.git"
+    repo_url: "https://github.com/1ChaLLengeR1/arturscibor-server-FastAPI.git"
     repo_dest: /opt/arturscibor_backend
     doppler_project: arturscibor_backend
     doppler_config: prd
