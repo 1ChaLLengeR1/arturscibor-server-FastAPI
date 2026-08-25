@@ -180,11 +180,12 @@ i dopiero WTEDY commitujesz — plik jest wtedy zaszyfrowany, bezpieczny do gita
 
 ## Do zapamiętania na pkt. 5 (CI/CD)
 
-GitHub Actions będzie miał environment `prod` (Settings → Environments) z
-sekretami: `SSH_PRIVATE_KEY`, `ANSIBLE_PASSWORD`, `TARGET_HOST`, `SSH_USER`,
-`DOCKER_USERNAME`, `DOCKER_PASSWORD`, `REPOSITORY` — decyzja podjęta teraz,
-budowa workflowów to osobne zadanie. **Hasło sudo (`become_password`) nie
-jest wśród nich** — nie ma dla niego osobnego sekretu CI, bo siedzi już
+GitHub Actions ma zwykłe **repository secrets** (Settings → Secrets and
+variables → Actions → Repository secrets — NIE environment secrets, patrz
+[5 — CI/CD](5-ci-cd-done.md) "Zdecydowane" po co ta zmiana): `SSH_PRIVATE_KEY`,
+`ANSIBLE_PASSWORD`, `TARGET_HOST`, `SSH_USER`, `DOCKER_USERNAME`,
+`DOCKER_PASSWORD`, `REPOSITORY`. **Hasło sudo (`become_password`) nie jest
+wśród nich** — nie ma dla niego osobnego sekretu CI, bo siedzi już
 zaszyfrowane wewnątrz `secrets.yml` i odszyfrowuje się razem z resztą przez
 `ANSIBLE_PASSWORD`.
 

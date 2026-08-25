@@ -8,13 +8,23 @@ projektu referencyjnego (`project-job-server-FastAPI`, katalog
 pełny Ansible + Docker Swarm + Doppler, więc CI/CD też pełne
 (test → container smoke → build+push → deploy), nie okrojone.
 
-## Zdecydowane już (przy okazji pkt. 4)
+## Zdecydowane już (przy okazji pkt. 4) — i cofnięte w trakcie budowy pkt. 5
 
-- GitHub Actions **environment `prod`** — sekrety deployu (`SSH_PRIVATE_KEY`,
-  `ANSIBLE_PASSWORD`, `TARGET_HOST`, `SSH_USER`, `DOCKER_USERNAME`,
-  `DOCKER_PASSWORD`, `REPOSITORY`) trzymane tam, nie jako zwykłe repo secrets.
-  `become_password` (hasło sudo, patrz pkt. 4) **nie** jest wśród nich — żyje
-  tylko wewnątrz zaszyfrowanego `infra/ansible/secrets.yml`.
+Pierwotna decyzja z pkt. 4: sekrety deployu (`SSH_PRIVATE_KEY`,
+`ANSIBLE_PASSWORD`, `TARGET_HOST`, `SSH_USER`, `DOCKER_USERNAME`,
+`DOCKER_PASSWORD`, `REPOSITORY`) w GitHub Actions **environment `prod`**, nie
+jako zwykłe repo secrets. **Cofnięte przy realnym pierwszym przebiegu** —
+patrz "Zweryfikowane lokalnie i na żywo" niżej: GitHub Environments
+strukturalnie nie domykają się z architekturą "orkiestrator woła 3 osobne
+pliki reusable workflow" (`run_production.yml` → `uses:`). Sekrety są teraz
+**zwykłymi repository secretami** (Settings → Secrets and variables →
+Actions → Repository secrets) — 1:1 jak w `project-job-server-FastAPI`. Jeśli
+dodałeś je wcześniej pod environment `prod`, przenieś (dodaj od nowa pod
+Repository secrets, wartości te same, stare pod environment możesz zostawić
+nieużywane albo skasować).
+
+`become_password` (hasło sudo, patrz pkt. 4) nie jest wśród tych sekretów —
+żyje tylko wewnątrz zaszyfrowanego `infra/ansible/secrets.yml`.
 
 ## Struktura
 
@@ -41,24 +51,18 @@ infra/scripts/ci/
       procesu priorytetowo, `env/*.env` nie jest tu potrzebny —
       `conftest.py` i tak sam tworzy `{DB_NAME}_test`); `make run_test`
 - [x] `run_production.yml` — na `main`: `container_smoke` → `ci` → `cd` →
-      `report` (podsumowanie + fail jeśli `cd` nie przeszedł). `ci`/`cd` NIE
-      mają tu `environment:`/`secrets:` — GitHub odrzuca `environment:` na
-      jobie, który jednocześnie woła reusable workflow przez `uses:`
-      (potwierdzone realnie: pierwsza wersja z `environment: prod` na tych
-      jobach dała "Invalid workflow file ... Unexpected value 'environment'"
-      i run padał w 0s, bez grafu jobów). `environment: prod` siedzi więc w
-      środku `run_ci_production.yml`/`run_cd_production.yml`, na jobie który
-      faktycznie coś robi — patrz niżej
+      `report` (podsumowanie + fail jeśli `cd` nie przeszedł). `ci`/`cd`
+      przekazują sekrety do reusable workflowów jawnie przez `secrets:`
+      (repository secrets, patrz "Zdecydowane" wyżej) — bez `environment:`
+      nigdzie w tym pliku
 - [x] `run_ci_test_containers.yml` — wywołuje `infra/scripts/ci/ci_smoke.sh`
-- [x] `run_ci_production.yml` — `environment: prod` na jobie `build_and_push`
-      (patrz wyżej), stąd `${{ secrets.* }}` w krokach bierze się wprost z
-      tego środowiska, bez przekazywania przez wołający job. Build
-      (`infra/dockerfiles/production.dockerfile`) + push, nazwa obrazu z
-      sekretu `REPOSITORY` (nie hardkodowana jak w projekcie referencyjnym —
-      zgodnie z decyzją z pkt. 4 trzymania jej jako osobnego sekretu
-      środowiska `prod`)
-- [x] `run_cd_production.yml` — `environment: prod` na jobie `deploy`, tak
-      samo jak wyżej. `ansible-playbook infra/ansible/playbook_deploy.yml`,
+- [x] `run_ci_production.yml` — `on.workflow_call.secrets` (DOCKER_USERNAME,
+      DOCKER_PASSWORD, REPOSITORY), przekazane przez `run_production.yml`.
+      Build (`infra/dockerfiles/production.dockerfile`) + push, nazwa obrazu
+      z sekretu `REPOSITORY` (nie hardkodowana jak w projekcie referencyjnym)
+- [x] `run_cd_production.yml` — `on.workflow_call.secrets` (ANSIBLE_PASSWORD,
+      SSH_PRIVATE_KEY, TARGET_HOST, SSH_USER), przekazane przez
+      `run_production.yml`. `ansible-playbook infra/ansible/playbook_deploy.yml`,
       renderuje `infra/ansible/inventory.ini` z `.example` (realny plik jest
       gitignored) + sekretów `TARGET_HOST`/`SSH_USER`, odszyfrowuje
       `secrets.yml` przez `ANSIBLE_PASSWORD`
@@ -70,10 +74,9 @@ infra/scripts/ci/
       zamiast `/health` — to API nie ma endpointu `/health` (patrz
       `api/router.py`), `/docs` (wbudowany Swagger UI FastAPI) wystarczy jako
       dowód, że aplikacja realnie wstała i odpowiada
-- [ ] Realne sekrety w GitHub → Settings → Environments → `prod` — **nie
-      uzupełnione** (nie mam do tego dostępu z tego środowiska). Bez nich
-      `run_production.yml` przejdzie `container_smoke`, ale padnie na `ci`
-      (brak `DOCKER_USERNAME`/`DOCKER_PASSWORD`/`REPOSITORY`)
+- [x] Realne sekrety w GitHub → Settings → Secrets and variables → Actions →
+      Repository secrets — uzupełnione (przez Ciebie; ja nie mam do tego
+      dostępu z tego środowiska)
 
 ## Zweryfikowane lokalnie i na żywo
 
@@ -88,16 +91,28 @@ uruchamia `run_ci_test_containers.yml` w CI:
 ```
 
 Składnia wszystkich 6 plików workflow zweryfikowana (`yaml.safe_load`) —
-ale to tylko generyczny YAML, nie schemat GitHub Actions. Realny przebieg na
-GitHub Actions (Ty, na swoim repo) złapał to, czego `yaml.safe_load` złapać
-nie mógł: `environment: prod` na jobie z `uses:` to poprawny YAML, ale
-nieprawidłowy workflow wg GitHuba — `Invalid workflow file ... Unexpected
-value 'environment'`, run padał w 0s bez grafu jobów. Poprawione (patrz
-Kroki wyżej) i to jest właśnie powód, żeby to admit: reszta pipeline'u
-(`docker login`, `ansible-playbook` na prawdziwy serwer, environment `prod`
-faktycznie oddające sekrety) nadal nie przeszła pełnego realnego przebiegu
-end-to-end — dopiero ten pierwszy krok (parsowalność workflow) jest
-potwierdzony na żywo.
+ale to tylko generyczny YAML, nie schemat GitHub Actions ani semantyka
+sekretów, i to złapało dwa realne problemy dopiero na żywym GitHub Actions
+(Ty, na swoim repo), niewidoczne lokalnie:
+
+1. `environment: prod` na jobie z `uses:` to poprawny YAML, ale
+   nieprawidłowy workflow wg GitHuba — `Invalid workflow file ... Unexpected
+   value 'environment'`, run padał w 0s bez grafu jobów.
+2. Po przeniesieniu `environment: prod` na sam reusable-workflow job (ten z
+   `runs-on:`) workflow już się parsował i faktycznie oznaczał run jako
+   `prod` w UI (widoczny badge/deployment) — ale `${{ secrets.* }}` w środku
+   i tak wychodziło puste (`docker login -u "" ...`). Mimo poprawnej
+   konfiguracji po stronie GitHuba (7 sekretów pod environment `prod`,
+   nazwy 1:1) `environment:` na jobie wewnątrz reusable workflow daje tylko
+   UI/reguły ochrony — NIE wstrzykuje sekretów środowiska do kontekstu
+   `secrets.*` reusable workflow. Ten kontekst widzi tylko to, co jawnie
+   zadeklarujesz w `on.workflow_call.secrets` i co caller jawnie przekaże —
+   a caller nie może mieć `environment:` (punkt 1), więc sam nie ma dostępu
+   do sekretów środowiska, żeby je przekazać dalej. Ślepy zaułek — stąd
+   ostateczna decyzja: zwykłe repository secrets, bez `environment:` nigdzie.
+
+Oba incydenty potwierdzone realnymi runami i screenami z Twojego GitHuba,
+nie zgadywane.
 
 ## Nieprzetestowane / do zweryfikowania przy pierwszym pełnym przebiegu
 
@@ -112,8 +127,7 @@ potwierdzony na żywo.
 ## Status
 
 Zaimplementowane w całości: 6 plików workflow + `infra/scripts/ci/ci_smoke.sh`,
-smoke-test zweryfikowany lokalnie. Do odpalenia na żywo brakuje jeszcze
-tylko uzupełnienia realnych sekretów w GitHub → Settings → Environments →
-`prod` (`SSH_PRIVATE_KEY`, `ANSIBLE_PASSWORD`, `TARGET_HOST`, `SSH_USER`,
-`DOCKER_USERNAME`, `DOCKER_PASSWORD`, `REPOSITORY`) — patrz
-[4 — infra](4-infra-done.md) sekcja "Co musisz uzupełnić sam".
+sekrety uzupełnione jako repository secrets. `container_smoke` przechodzi na
+żywo. Reszta pipeline'u (`ci` build+push, `cd` ansible-playbook na
+prawdziwy serwer) jeszcze nie zaobserwowana end-to-end — patrz
+"Nieprzetestowane" wyżej.

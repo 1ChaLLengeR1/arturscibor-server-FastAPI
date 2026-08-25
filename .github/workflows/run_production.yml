@@ -13,16 +13,28 @@ jobs:
   ci:
     needs: container_smoke
     uses: ./.github/workflows/run_ci_production.yml
-    # Sekrety NIE są tu przekazywane — GitHub nie pozwala na `environment:`
-    # na jobie, który woła reusable workflow (`uses:`), więc `environment: prod`
-    # siedzi bezpośrednio w run_ci_production.yml, na jobie który je faktycznie
-    # używa. Stąd żaden `secrets:` blok tutaj nie jest potrzebny.
+    # Zwykłe repository secrets (Settings -> Secrets and variables -> Actions
+    # -> Repository secrets) — NIE environment secrets. GitHub Environments +
+    # reusable workflow (uses:) po prostu się nie domyka: caller nie może mieć
+    # `environment:` (odrzucane jako "Unexpected value"), a `environment:` na
+    # samym reusable-workflow jobie daje tylko UI/reguły ochrony, nie
+    # wstrzykuje sekretów do jego kontekstu `secrets.*` — sprawdzone na żywo.
+    # 1:1 z project-job-server-FastAPI.
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      REPOSITORY: ${{ secrets.REPOSITORY }}
 
   cd:
     needs: ci
     uses: ./.github/workflows/run_cd_production.yml
     with:
       backend_image: ${{ needs.ci.outputs.backend_image }}
+    secrets:
+      ANSIBLE_PASSWORD: ${{ secrets.ANSIBLE_PASSWORD }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      TARGET_HOST: ${{ secrets.TARGET_HOST }}
+      SSH_USER: ${{ secrets.SSH_USER }}
 
   report:
     needs: [container_smoke, ci, cd]

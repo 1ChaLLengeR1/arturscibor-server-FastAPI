@@ -7,13 +7,19 @@ on:
         description: "Obraz do wdrożenia (z tagiem wersji z CI); pusty = latest"
         required: false
         type: string
+    secrets:
+      ANSIBLE_PASSWORD:
+        required: true
+      SSH_PRIVATE_KEY:
+        required: true
+      TARGET_HOST:
+        required: true
+      SSH_USER:
+        required: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    # Patrz komentarz w run_ci_production.yml — `environment:` nie może
-    # siedzieć na jobie wołającym (`uses:`), więc jest tutaj.
-    environment: prod
 
     steps:
       - name: Checkout repository
