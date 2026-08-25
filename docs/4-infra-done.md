@@ -10,7 +10,14 @@ decyzja na później, nie część mechanizmu deployu).
 
 Domena: **`server.arturscibor.pl`** — wpisana już na stałe w
 `infra/compose/production.swarm.docker-compose.yaml`, nie placeholder.
-Repo na GitHubie: **`arturscibor/arturscibor_backend`**. Sekrety aplikacji:
+Repo na GitHubie: **`1ChaLLengeR1/arturscibor-server-FastAPI`** (real
+adres, `git remote -v`) — `arturscibor/arturscibor_backend` był planowany
+jako docelowa nazwa/org, ale rename się jeszcze nie wydarzył na GitHubie;
+złapane realnym failem deployu (`Repository not found`), poprawione w
+`checkout.yml`/`playbook_deploy.yml` na aktualny adres. Nazwa
+`arturscibor_backend` żyje dalej w Dopplerze/katalogu deployu na serwerze —
+to niezależna decyzja, nie musi zgadzać się z nazwą repo na GitHubie.
+Sekrety aplikacji:
 **Doppler**, projekt `arturscibor_backend`, config **`prd`**. Sekrety
 infrastrukturalne (Doppler token, PAT, Docker Hub, hasło sudo do serwera) w
 `infra/ansible/secrets.yml`, szyfrowane `ansible-vault` — dokładnie jak w
@@ -162,7 +169,7 @@ w kluczu sekretu).
 
 | Co | Gdzie | Skąd wziąć |
 |---|---|---|
-| `git_pat` | `infra/ansible/secrets.yml` | GitHub → Settings → Developer settings → Personal access tokens (scope: read repo, na `arturscibor/arturscibor_backend`) |
+| `git_pat` | `infra/ansible/secrets.yml` | GitHub → Settings → Developer settings → Personal access tokens (scope: read repo, na `1ChaLLengeR1/arturscibor-server-FastAPI`) |
 | `doppler_token` | `infra/ansible/secrets.yml` | Utwórz projekt `arturscibor_backend` w Dopplerze, config `prd`, wgraj tam wszystkie zmienne z `env/local.env` **z prefiksem `ARTURSCIBOR_BACKEND_`** (przeliczone na wartości produkcyjne — w tym `ARTURSCIBOR_BACKEND_DB_HOST=host.docker.internal`) + service token do configu `prd` |
 | `docker_hub_username` / `docker_hub_password` | `infra/ansible/secrets.yml` | Docker Hub → Account Settings → Security → New Access Token (NIE hasło do konta) |
 | `become_password` | `infra/ansible/secrets.yml` | Hasło sudo usera SSH na serwerze (`ansible_become_pass`). **Nie dubluj go w GitHub Actions secrets** — żyje tylko wewnątrz zaszyfrowanego `secrets.yml`, odszyfrowywanego w CI przez `ANSIBLE_PASSWORD` (to osobny sekret CI — hasło do vaulta, nie do sudo) |

@@ -111,8 +111,34 @@ sekretów, i to złapało dwa realne problemy dopiero na żywym GitHub Actions
    do sekretów środowiska, żeby je przekazać dalej. Ślepy zaułek — stąd
    ostateczna decyzja: zwykłe repository secrets, bez `environment:` nigdzie.
 
-Oba incydenty potwierdzone realnymi runami i screenami z Twojego GitHuba,
-nie zgadywane.
+3. `git_pat` vs `github_pat` — nazwa zmiennej w `infra/ansible/secrets.yml`
+   (realnie: `git_pat`) nie zgadzała się z tą, której szukał
+   `tasks/checkout.yml` (`github_pat`) — `undefined`, złapane dopiero na
+   realnym `ansible-playbook`. Poprawione na `git_pat` (dopasowane do
+   sekretu, nie odwrotnie — jego już masz zaszyfrowany w vault).
+4. URL repo w `checkout.yml`/`playbook_deploy.yml` wskazywał na
+   `arturscibor/arturscibor_backend` — planowaną, ale nigdy nie wykonaną
+   zmianę nazwy/org na GitHubie. `Repository not found`. Poprawione na
+   realny adres `1ChaLLengeR1/arturscibor-server-FastAPI` (`git remote -v`).
+5. `backend_image` w `playbook_deploy.yml` używał filtra `mandatory(...)` —
+   twardy fail, gdy `needs.ci.outputs.backend_image` z jakiegoś powodu nie
+   dotarł do `cd` (mimo że `ci` się powiódł i wiring na papierze wygląda
+   poprawnie — realny, zaobserwowany przypadek, przyczyna nie w pełni
+   zdiagnozowana, prawdopodobnie niuans GitHuba z przekazywaniem outputów
+   między łańcuchem reusable workflowów). `project-job-server-FastAPI` ma
+   dokładnie ten sam wzorzec (`backend_image_override | default(...)`), tylko
+   z bezpiecznym fallbackiem zamiast twardego fail — przepisane 1:1, fallback
+   `{{ docker_hub_username }}/arturscibor_backend:latest` (zakłada, że sekret
+   `REPOSITORY` to `arturscibor_backend` — dotyczy tylko tej ścieżki
+   awaryjnej, normalny deploy zawsze używa realnego przekazanego taga).
+6. `tasks/checkout.yml` nie miał `no_log: true` na klonowaniu — URL z PAT w
+   plaintext mógłby wylądować w logach. Dopisane (projekt referencyjny to
+   miał od razu).
+
+Wszystkie incydenty potwierdzone realnymi runami i screenami z Twojego
+GitHuba, nie zgadywane — znalezione częściowo przez porównanie 1:1 z
+`project-job-server-FastAPI` (`infra/ansible/`, `.github/workflows/`),
+który realnie działa na tym samym serwerze.
 
 ## Nieprzetestowane / do zweryfikowania przy pierwszym pełnym przebiegu
 
@@ -127,7 +153,10 @@ nie zgadywane.
 ## Status
 
 Zaimplementowane w całości: 6 plików workflow + `infra/scripts/ci/ci_smoke.sh`,
-sekrety uzupełnione jako repository secrets. `container_smoke` przechodzi na
-żywo. Reszta pipeline'u (`ci` build+push, `cd` ansible-playbook na
-prawdziwy serwer) jeszcze nie zaobserwowana end-to-end — patrz
-"Nieprzetestowane" wyżej.
+sekrety uzupełnione jako repository secrets. Na żywo potwierdzone: cały
+`container_smoke`, cały `ci` (build+push), i w `cd` — checkout, sieć
+Traefika, sekrety z Dopplera, `docker login`, deploy stacka Traefika.
+Ostatni krok (`docker stack deploy` samego backendu) padał na
+`backend_image` (patrz incydent 5 wyżej) — poprawione, ale jeszcze nie
+potwierdzone ponownym przebiegiem. To jedyny krok całego pipeline'u, który
+nie ma jeszcze realnego zielonego przebiegu.

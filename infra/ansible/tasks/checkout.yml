@@ -5,6 +5,7 @@
     dest: "{{ repo_dest }}"
     version: main
     force: true
+  no_log: true
 
 - name: Remove PAT from git remote after checkout
   ansible.builtin.command:
