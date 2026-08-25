@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Usage: infra/scripts/database/migration_up.sh <local|prod>
+# Usage: infra/scripts/database/migration_up.sh <local|prd>
 # Applies database/psql/sql/database_up.sql (extensions), then
 # `alembic upgrade head`.
 set -euo pipefail
 
-ENV_NAME="${1:?Usage: migration_up.sh <local|prod>}"
+ENV_NAME="${1:?Usage: migration_up.sh <local|prd>}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 ENV_FILE="$REPO_ROOT/env/${ENV_NAME}.env"
 

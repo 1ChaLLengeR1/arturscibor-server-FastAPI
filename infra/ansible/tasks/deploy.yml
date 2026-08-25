@@ -6,14 +6,19 @@
   no_log: true
 
 - name: Deploy Traefik stack
+  # Same stack name ("traefik") and same compose file content as
+  # project-job-server-FastAPI's own deploy — this is shared infra, both
+  # projects' CDs reconcile the identical stack, so this is a no-op if
+  # Traefik is already running with this config (idempotent `docker stack
+  # deploy`), whichever project happens to deploy first/last.
   ansible.builtin.command:
-    cmd: docker stack deploy -c infra/compose/traefik_production_stack.yaml arturscibor_traefik
+    cmd: docker stack deploy -c infra/compose/traefik_production_stack.yaml traefik
     chdir: "{{ repo_dest }}"
   changed_when: true
 
 - name: Deploy backend stack
   ansible.builtin.command:
-    cmd: docker stack deploy --with-registry-auth -c infra/compose/production.swarm.docker-compose.yaml arturscibor
+    cmd: docker stack deploy --with-registry-auth -c infra/compose/production.swarm.docker-compose.yaml arturscibor_backend
     chdir: "{{ repo_dest }}"
   environment:
     BACKEND_IMAGE: "{{ backend_image }}"

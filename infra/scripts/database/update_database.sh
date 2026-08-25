@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: infra/scripts/database/update_database.sh <local|prod>
+# Usage: infra/scripts/database/update_database.sh <local|prd>
 # Idempotently (re)seeds singleton rows that migrations only insert as a
 # best-effort guard (`INSERT ... WHERE NOT EXISTS`) — `about_me` and
 # `curriculum_vitae`. Needed after `migration_restart`, since its regenerated
@@ -10,7 +10,7 @@
 # and the public GET endpoints 404.
 set -euo pipefail
 
-ENV_NAME="${1:?Usage: update_database.sh <local|prod>}"
+ENV_NAME="${1:?Usage: update_database.sh <local|prd>}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 ENV_FILE="$REPO_ROOT/env/${ENV_NAME}.env"
 

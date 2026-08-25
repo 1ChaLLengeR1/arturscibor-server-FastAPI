@@ -1,7 +1,12 @@
 ---
-- name: Ensure Traefik overlay network exists
+- name: Ensure the shared Traefik overlay network exists
+  # Shared with project-job-server-FastAPI's Traefik (see tasks/deploy.yml)
+  # — idempotent either way: whichever project's CD runs first creates it,
+  # the other just finds it already there. `attachable: true` mirrors the
+  # `--attachable` flag project-job-server-FastAPI's own networks task uses.
   community.docker.docker_network:
-    name: backend_network_traefik
+    name: traefik-public
     driver: overlay
     scope: swarm
+    attachable: true
     state: present

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Usage: infra/scripts/database/migration_down.sh <local|prod>
+# Usage: infra/scripts/database/migration_down.sh <local|prd>
 # DESTRUCTIVE: drops every table this project owns (database_down.sql).
 # Asks for confirmation before running against anything other than local.
 set -euo pipefail
 
-ENV_NAME="${1:?Usage: migration_down.sh <local|prod>}"
+ENV_NAME="${1:?Usage: migration_down.sh <local|prd>}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 ENV_FILE="$REPO_ROOT/env/${ENV_NAME}.env"
 
