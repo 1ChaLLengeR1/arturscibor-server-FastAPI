@@ -2,11 +2,12 @@
 - name: Ensure the shared Traefik overlay network exists
   # Shared with project-job-server-FastAPI's Traefik (see tasks/deploy.yml)
   # — idempotent either way: whichever project's CD runs first creates it,
-  # the other just finds it already there. `attachable: true` mirrors the
-  # `--attachable` flag project-job-server-FastAPI's own networks task uses.
-  community.docker.docker_network:
-    name: traefik-public
-    driver: overlay
-    scope: swarm
-    attachable: true
-    state: present
+  # the other just finds it already there. Plain `docker network create`
+  # (not the community.docker collection) — matches project-job-server-FastAPI
+  # and avoids needing that collection installed on the CI runner + the
+  # Docker SDK for Python on the remote host, neither of which is set up.
+  ansible.builtin.command:
+    cmd: docker network create --driver overlay --attachable traefik-public
+  register: network_result
+  failed_when: network_result.rc != 0 and 'already exists' not in network_result.stderr
+  changed_when: network_result.rc == 0

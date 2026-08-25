@@ -14,8 +14,9 @@ jobs:
     needs: container_smoke
     uses: ./.github/workflows/run_ci_production.yml
     # Sekrety w GitHub Actions environment "prod" (Settings -> Environments) —
-    # patrz docs/5-ci-cd.md. `environment:` na tym jobie jest wymagane, żeby
-    # workflow_call w ogóle miał dostęp do sekretów przypisanych do tego środowiska.
+    # patrz docs/5-ci-cd.md. Bez `environment:` na tym jobie, `secrets.X`
+    # poniżej widziałby TYLKO sekrety repo, nie sekrety środowiska "prod".
+    environment: prod
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
@@ -24,6 +25,7 @@ jobs:
   cd:
     needs: ci
     uses: ./.github/workflows/run_cd_production.yml
+    environment: prod
     with:
       backend_image: ${{ needs.ci.outputs.backend_image }}
     secrets:

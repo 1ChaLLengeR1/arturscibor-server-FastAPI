@@ -10,6 +10,12 @@
     repo_dest: /opt/arturscibor_backend
     doppler_project: arturscibor_backend
     doppler_config: prd
+    # Always passed by run_production.yml as -e backend_image_override=... (the
+    # tag CI just built+pushed) — no sane hardcoded default exists here since
+    # the image name depends on the DOCKER_USERNAME/REPOSITORY secrets, which
+    # this playbook has no other way to know. Fails loudly instead of silently
+    # deploying an undefined/wrong image if ever run without that extra-var.
+    backend_image: "{{ backend_image_override | mandatory('Pass -e backend_image_override=<user>/<repo>:<tag>, e.g. via run_production.yml') }}"
   tasks:
     - import_tasks: tasks/checkout.yml
     - import_tasks: tasks/networks.yml

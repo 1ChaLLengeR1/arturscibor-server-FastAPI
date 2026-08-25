@@ -1,9 +1,12 @@
 ---
 - name: Log in to Docker Hub
-  community.docker.docker_login:
-    username: "{{ docker_hub_username }}"
-    password: "{{ docker_hub_password }}"
+  # Plain `docker login` (not community.docker) — same reasoning as
+  # tasks/networks.yml and tasks/secret_env.yml.
+  ansible.builtin.command:
+    cmd: docker login -u {{ docker_hub_username }} --password-stdin
+    stdin: "{{ docker_hub_password }}"
   no_log: true
+  changed_when: false
 
 - name: Deploy Traefik stack
   # Same stack name ("traefik") and same compose file content as

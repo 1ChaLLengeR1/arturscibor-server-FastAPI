@@ -36,7 +36,11 @@ jobs:
           ssh-keyscan -H ${{ secrets.TARGET_HOST }} >> ~/.ssh/known_hosts
 
       - name: Render inventory
+        # infra/ansible/inventory.ini is gitignored (real IP/user never committed)
+        # — only inventory.ini.example ships in the repo, so a fresh checkout has
+        # no inventory.ini yet. Render it from the template first, then fill it in.
         run: |
+          cp infra/ansible/inventory.ini.example infra/ansible/inventory.ini
           sed -i "s/__TARGET_HOST__/${{ secrets.TARGET_HOST }}/" infra/ansible/inventory.ini
           sed -i "s/__SSH_USER__/${{ secrets.SSH_USER }}/" infra/ansible/inventory.ini
 
