@@ -2,13 +2,6 @@ name: CI - Build and Push Docker Image
 
 on:
   workflow_call:
-    secrets:
-      DOCKER_USERNAME:
-        required: true
-      DOCKER_PASSWORD:
-        required: true
-      REPOSITORY:
-        required: true
     outputs:
       app_version:
         description: "Wersja obrazu (timestamp YYYYMMDDHHMM)"
@@ -20,6 +13,12 @@ on:
 jobs:
   build_and_push:
     runs-on: ubuntu-latest
+    # GitHub nie pozwala na `environment:` na jobie WOŁAJĄCYM reusable workflow
+    # (uses:) — musi siedzieć tu, na jobie który faktycznie coś robi. Sekrety
+    # ${{ secrets.* }} poniżej biorą się stąd wprost z environment "prod"
+    # (Settings -> Environments), nie z workflow_call.secrets / przekazywania
+    # przez wołający job.
+    environment: prod
 
     outputs:
       app_version: ${{ steps.version.outputs.app_version }}

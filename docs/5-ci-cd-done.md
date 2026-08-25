@@ -41,18 +41,27 @@ infra/scripts/ci/
       procesu priorytetowo, `env/*.env` nie jest tu potrzebny —
       `conftest.py` i tak sam tworzy `{DB_NAME}_test`); `make run_test`
 - [x] `run_production.yml` — na `main`: `container_smoke` → `ci` → `cd` →
-      `report` (podsumowanie + fail jeśli `cd` nie przeszedł). `environment: prod`
-      ustawione na jobach `ci` i `cd` — bez tego reusable workflow nie
-      dostałby sekretów przypisanych do tego środowiska
+      `report` (podsumowanie + fail jeśli `cd` nie przeszedł). `ci`/`cd` NIE
+      mają tu `environment:`/`secrets:` — GitHub odrzuca `environment:` na
+      jobie, który jednocześnie woła reusable workflow przez `uses:`
+      (potwierdzone realnie: pierwsza wersja z `environment: prod` na tych
+      jobach dała "Invalid workflow file ... Unexpected value 'environment'"
+      i run padał w 0s, bez grafu jobów). `environment: prod` siedzi więc w
+      środku `run_ci_production.yml`/`run_cd_production.yml`, na jobie który
+      faktycznie coś robi — patrz niżej
 - [x] `run_ci_test_containers.yml` — wywołuje `infra/scripts/ci/ci_smoke.sh`
-- [x] `run_ci_production.yml` — build (`infra/dockerfiles/production.dockerfile`)
-      + push, nazwa obrazu z sekretu `REPOSITORY` (nie hardkodowana jak w
-      projekcie referencyjnym — zgodnie z decyzją z pkt. 4 trzymania jej
-      jako osobnego sekretu środowiska `prod`)
-- [x] `run_cd_production.yml` — `ansible-playbook infra/ansible/playbook_deploy.yml`,
-      renderuje `infra/ansible/inventory.ini` z sekretów `TARGET_HOST`/`SSH_USER`,
-      odszyfrowuje `secrets.yml` przez `ANSIBLE_PASSWORD` — 1:1 z projektem
-      referencyjnym, bez zmian (mechanizm nie zależy od konkretnego projektu)
+- [x] `run_ci_production.yml` — `environment: prod` na jobie `build_and_push`
+      (patrz wyżej), stąd `${{ secrets.* }}` w krokach bierze się wprost z
+      tego środowiska, bez przekazywania przez wołający job. Build
+      (`infra/dockerfiles/production.dockerfile`) + push, nazwa obrazu z
+      sekretu `REPOSITORY` (nie hardkodowana jak w projekcie referencyjnym —
+      zgodnie z decyzją z pkt. 4 trzymania jej jako osobnego sekretu
+      środowiska `prod`)
+- [x] `run_cd_production.yml` — `environment: prod` na jobie `deploy`, tak
+      samo jak wyżej. `ansible-playbook infra/ansible/playbook_deploy.yml`,
+      renderuje `infra/ansible/inventory.ini` z `.example` (realny plik jest
+      gitignored) + sekretów `TARGET_HOST`/`SSH_USER`, odszyfrowuje
+      `secrets.yml` przez `ANSIBLE_PASSWORD`
 - [x] `infra/scripts/ci/ci_smoke.sh` — wzorowany na projekcie referencyjnym,
       dostosowany: port **8000** (nie 3000), prefiks `ARTURSCIBOR_BACKEND_`,
       `infra/dockerfiles/production.dockerfile`, `uv run python -c` zamiast
@@ -66,7 +75,7 @@ infra/scripts/ci/
       `run_production.yml` przejdzie `container_smoke`, ale padnie na `ci`
       (brak `DOCKER_USERNAME`/`DOCKER_PASSWORD`/`REPOSITORY`)
 
-## Zweryfikowane lokalnie
+## Zweryfikowane lokalnie i na żywo
 
 `infra/scripts/ci/ci_smoke.sh` odpalony bezpośrednio na tej maszynie
 (`bash infra/scripts/ci/ci_smoke.sh`) — dokładnie ten sam skrypt, który
@@ -78,23 +87,27 @@ uruchamia `run_ci_test_containers.yml` w CI:
 === Layer 3: boot uvicorna + probe /docs === ✔ (/docs odpowiada)
 ```
 
-Składnia wszystkich 6 plików workflow zweryfikowana (`yaml.safe_load`).
+Składnia wszystkich 6 plików workflow zweryfikowana (`yaml.safe_load`) —
+ale to tylko generyczny YAML, nie schemat GitHub Actions. Realny przebieg na
+GitHub Actions (Ty, na swoim repo) złapał to, czego `yaml.safe_load` złapać
+nie mógł: `environment: prod` na jobie z `uses:` to poprawny YAML, ale
+nieprawidłowy workflow wg GitHuba — `Invalid workflow file ... Unexpected
+value 'environment'`, run padał w 0s bez grafu jobów. Poprawione (patrz
+Kroki wyżej) i to jest właśnie powód, żeby to admit: reszta pipeline'u
+(`docker login`, `ansible-playbook` na prawdziwy serwer, environment `prod`
+faktycznie oddające sekrety) nadal nie przeszła pełnego realnego przebiegu
+end-to-end — dopiero ten pierwszy krok (parsowalność workflow) jest
+potwierdzony na żywo.
 
-## Nieprzetestowane / do zweryfikowania przy pierwszym realnym przebiegu
+## Nieprzetestowane / do zweryfikowania przy pierwszym pełnym przebiegu
 
-Brak dostępu do GitHub Actions z tego środowiska (i brak sekretów), więc:
-
-- Pełny przebieg `run_production.yml` na realnym GitHub Actions (checkout,
-  `astral-sh/setup-uv`, `docker login`, `ansible-playbook` na prawdziwy
-  serwer) — **nie odpalony ani razu**, tylko sprawdzony wzrokowo i
-  zweryfikowany co do składni
+- Pełny przebieg `run_production.yml` do końca (build+push obrazu,
+  `ansible-playbook` na prawdziwy serwer, deploy Traefika + backendu) —
+  jeszcze nie zaobserwowany
 - `run_ci_test_local.yml` (serwis `postgres:16` + `make run_test`) — nie
   uruchomiony lokalnie w tej sesji celowo, bo wymagałoby to dotknięcia Twojej
   realnej lokalnej bazy dev (`env/local.env`); logika joba jest 1:1 tym, co
   już działa lokalnie u Ciebie przez `make run_test` z natywnym Postgresem
-- `environment: prod` faktycznie przekazujące sekrety do reusable
-  workflowów przez `secrets:` w `run_production.yml` — składniowo poprawne,
-  ale bez realnego repo/environment na GitHubie nie do zweryfikowania stąd
 
 ## Status
 
