@@ -162,7 +162,7 @@ w kluczu sekretu).
 
 | Co | Gdzie | Skąd wziąć |
 |---|---|---|
-| `github_pat` | `infra/ansible/secrets.yml` | GitHub → Settings → Developer settings → Personal access tokens (scope: read repo, na `arturscibor/arturscibor_backend`) |
+| `git_pat` | `infra/ansible/secrets.yml` | GitHub → Settings → Developer settings → Personal access tokens (scope: read repo, na `arturscibor/arturscibor_backend`) |
 | `doppler_token` | `infra/ansible/secrets.yml` | Utwórz projekt `arturscibor_backend` w Dopplerze, config `prd`, wgraj tam wszystkie zmienne z `env/local.env` **z prefiksem `ARTURSCIBOR_BACKEND_`** (przeliczone na wartości produkcyjne — w tym `ARTURSCIBOR_BACKEND_DB_HOST=host.docker.internal`) + service token do configu `prd` |
 | `docker_hub_username` / `docker_hub_password` | `infra/ansible/secrets.yml` | Docker Hub → Account Settings → Security → New Access Token (NIE hasło do konta) |
 | `become_password` | `infra/ansible/secrets.yml` | Hasło sudo usera SSH na serwerze (`ansible_become_pass`). **Nie dubluj go w GitHub Actions secrets** — żyje tylko wewnątrz zaszyfrowanego `secrets.yml`, odszyfrowywanego w CI przez `ANSIBLE_PASSWORD` (to osobny sekret CI — hasło do vaulta, nie do sudo) |

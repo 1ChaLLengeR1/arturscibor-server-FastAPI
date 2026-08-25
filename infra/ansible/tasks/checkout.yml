@@ -1,7 +1,7 @@
 ---
 - name: Clone or update repository (via PAT, HTTPS)
   ansible.builtin.git:
-    repo: "https://{{ github_pat }}@github.com/arturscibor/arturscibor_backend.git"
+    repo: "https://{{ git_pat }}@github.com/arturscibor/arturscibor_backend.git"
     dest: "{{ repo_dest }}"
     version: main
     force: true
