@@ -34,6 +34,20 @@ services:
         - "traefik.http.routers.arturscibor-backend.entrypoints=websecure"
         - "traefik.http.routers.arturscibor-backend.tls.certresolver=myresolver"
         - "traefik.http.services.arturscibor-backend.loadbalancer.server.port=8000"
+        # Basic auth on the Swagger/OpenAPI docs only — NOT the whole API, the
+        # rest of it is public and used live by arturscibor.pl. Second, more
+        # specific router on the same service; `priority` makes sure it wins
+        # over the plain Host(...) router above for these paths. `$` in the
+        # htpasswd hash is doubled ($$) because `docker stack deploy`
+        # interpolates `${...}` in compose/stack files the same way `docker
+        # compose` does — a lone `$` would be swallowed as a (missing) var.
+        - "traefik.http.routers.arturscibor-backend-docs.rule=Host(`server.arturscibor.pl`) && (PathPrefix(`/docs`) || PathPrefix(`/redoc`) || PathPrefix(`/openapi.json`))"
+        - "traefik.http.routers.arturscibor-backend-docs.entrypoints=websecure"
+        - "traefik.http.routers.arturscibor-backend-docs.tls.certresolver=myresolver"
+        - "traefik.http.routers.arturscibor-backend-docs.service=arturscibor-backend"
+        - "traefik.http.routers.arturscibor-backend-docs.priority=100"
+        - "traefik.http.routers.arturscibor-backend-docs.middlewares=arturscibor-backend-docs-auth"
+        - "traefik.http.middlewares.arturscibor-backend-docs-auth.basicauth.users=artek_admin:$$apr1$$9xjizude$$ct.nPA17uXq73j3W9NKCL1"
 
 networks:
   traefik-public:
