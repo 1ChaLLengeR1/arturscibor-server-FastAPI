@@ -1,14 +1,15 @@
 ---
-- name: Deploy arturscibor-server-fastapi
+- name: Deploy arturscibor_backend
   hosts: production
   become: true
   vars_files:
     - secrets.yml
   vars:
-    repo_url: "https://github.com/1ChaLLengeR1/arturscibor-server-FastAPI.git"
-    repo_dest: /opt/arturscibor-server-fastapi
-    doppler_project: arturscibor-server-fastapi
-    doppler_config: prod
+    ansible_become_pass: "{{ become_password }}"
+    repo_url: "https://github.com/arturscibor/arturscibor_backend.git"
+    repo_dest: /opt/arturscibor_backend
+    doppler_project: arturscibor_backend
+    doppler_config: prd
   tasks:
     - import_tasks: tasks/checkout.yml
     - import_tasks: tasks/networks.yml

@@ -1,22 +1,15 @@
 #!/usr/bin/env bash
-# Usage: infra/scripts/database/restart.sh local
-# Full local schema reset: downgrade to base, drop everything, DELETE all
+# Usage: infra/scripts/database/restart.sh <local|stg|prd>
+# Full schema reset: downgrade to base, drop everything, DELETE all
 # existing Alembic version files, regenerate a single fresh migration via
 # autogenerate, reapply, then reseed singleton rows (autogenerate only
 # captures schema diffs, not the hand-written seed INSERTs the deleted
 # migrations had — see update_database.sh) and the admin user (see
-# seed_admin.sql). Only makes sense for local dev —
-# refuses to run against anything else, since deleting migration history
-# against a shared database would be a real mess.
+# seed_admin.sql).
 set -euo pipefail
 
-ENV_NAME="${1:?Usage: restart.sh local}"
+ENV_NAME="${1:?Usage: restart.sh <local|stg|prd>}"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
-
-if [[ "$ENV_NAME" != "local" ]]; then
-  echo "restart.sh only runs against 'local' — it deletes migration version files, never run it against a shared database." >&2
-  exit 1
-fi
 
 ENV_FILE="$REPO_ROOT/env/${ENV_NAME}.env"
 if [[ ! -f "$ENV_FILE" ]]; then

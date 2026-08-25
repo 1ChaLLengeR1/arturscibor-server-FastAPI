@@ -7,34 +7,39 @@
 #
 # Postgres is native on the host (not a Swarm service) — same as local dev.
 # The backend reaches it via host.docker.internal, so set
-# ARTURSCIBOR_BACKEND_DB_HOST=host.docker.internal in the Doppler "prod"
+# ARTURSCIBOR_BACKEND_DB_HOST=host.docker.internal in the Doppler "prd"
 # config (see docs/4-infra-done.md).
+#
+# `traefik-public` is NOT owned by this stack — it's shared with
+# project-job-server-FastAPI's Traefik, also deployed idempotently by this
+# playbook (see tasks/deploy.yml + traefik_production_stack.yaml). This
+# service just joins that network via labels.
 
 services:
   backend:
     image: ${BACKEND_IMAGE}
-    entrypoint: ["/bin/sh", "-c", "set -a && . /run/secrets/env_prod && set +a && uv run uvicorn main:app --host 0.0.0.0 --port 8000"]
+    entrypoint: ["/bin/sh", "-c", "set -a && . /run/secrets/env_prd && set +a && uv run uvicorn main:app --host 0.0.0.0 --port 8000"]
     secrets:
-      - source: env_prod
-        target: env_prod
+      - source: env_prd
+        target: env_prd
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - backend_network_traefik
+      - traefik-public
     deploy:
       replicas: 1
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.arturscibor-backend.rule=Host(`api.example.com`)"
+        - "traefik.http.routers.arturscibor-backend.rule=Host(`server.arturscibor.pl`)"
         - "traefik.http.routers.arturscibor-backend.entrypoints=websecure"
-        - "traefik.http.routers.arturscibor-backend.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.arturscibor-backend.tls.certresolver=myresolver"
         - "traefik.http.services.arturscibor-backend.loadbalancer.server.port=8000"
 
 networks:
-  backend_network_traefik:
+  traefik-public:
     external: true
 
 secrets:
-  env_prod:
+  env_prd:
     external: true
-    name: "arturscibor_env_prod_${ENV_SECRET_VERSION}"
+    name: "arturscibor_env_prd_${ENV_SECRET_VERSION}"

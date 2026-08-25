@@ -1,34 +1,43 @@
-# Separate stack from the backend, deployed first (see
-# infra/ansible/tasks/deploy.yml) so the overlay network + TLS termination
-# exist before the backend stack tries to attach to them.
+# Mirrors infra/dockerfiles/compose/traefik.yml from project-job-server-FastAPI
+# 1:1 (same stack name "traefik", same resolver name, same email, same
+# volume/network names). Traefik is SHARED infra on this server between
+# arturscibor_backend and project-job-server-FastAPI — both projects' CD
+# pipelines deploy this identical stack, so `docker stack deploy` is a no-op
+# reconciliation no matter which project's deploy runs last. If this file
+# ever needs to change, change it in both repos together, or the two CDs
+# will fight over the stack's config on every deploy.
+#
+# Deployed BEFORE the backend stack (see tasks/deploy.yml) so the overlay
+# network + TLS termination exist before the backend stack tries to attach.
 
 services:
   traefik:
     image: traefik:v2.11
     command:
       - "--providers.docker.swarmMode=true"
-      - "--providers.docker.exposedByDefault=false"
+      - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
-      - "--certificatesresolvers.letsencrypt.acme.email=admin@example.com"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=artek.scibor@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
       - "443:443"
-    networks:
-      - backend_network_traefik
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - traefik_certs:/letsencrypt
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-cert:/letsencrypt
+    networks:
+      - traefik-public
     deploy:
+      mode: global
       placement:
-        constraints:
-          - node.role == manager
-
-networks:
-  backend_network_traefik:
-    external: true
+        constraints: [node.role == manager]
 
 volumes:
-  traefik_certs:
+  traefik-cert:
+
+networks:
+  traefik-public:
+    external: true
