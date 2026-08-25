@@ -1,0 +1,51 @@
+name: CI - Build and Push Docker Image
+
+on:
+  workflow_call:
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
+      REPOSITORY:
+        required: true
+    outputs:
+      app_version:
+        description: "Wersja obrazu (timestamp YYYYMMDDHHMM)"
+        value: ${{ jobs.build_and_push.outputs.app_version }}
+      backend_image:
+        description: "Pełna nazwa obrazu z tagiem wersji"
+        value: ${{ jobs.build_and_push.outputs.backend_image }}
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+
+    outputs:
+      app_version: ${{ steps.version.outputs.app_version }}
+      backend_image: ${{ steps.version.outputs.backend_image }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set APP_VERSION timestamp
+        id: version
+        run: |
+          APP_VERSION=$(date +%Y%m%d%H%M)
+          echo "app_version=$APP_VERSION" >> $GITHUB_OUTPUT
+          echo "backend_image=${{ secrets.DOCKER_USERNAME }}/${{ secrets.REPOSITORY }}:$APP_VERSION" >> $GITHUB_OUTPUT
+          echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
+
+      - name: Log in to DockerHub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/${{ secrets.REPOSITORY }}:${APP_VERSION} -f infra/dockerfiles/production.dockerfile .
+          docker tag ${{ secrets.DOCKER_USERNAME }}/${{ secrets.REPOSITORY }}:${APP_VERSION} ${{ secrets.DOCKER_USERNAME }}/${{ secrets.REPOSITORY }}:latest
+
+      - name: Push Docker image
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.REPOSITORY }}:${APP_VERSION}
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.REPOSITORY }}:latest

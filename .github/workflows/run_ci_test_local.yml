@@ -1,0 +1,61 @@
+name: CI - Tests (runner)
+
+on:
+  workflow_call:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      # Settings czyta zmienne procesu priorytetowo (env_prefix="ARTURSCIBOR_BACKEND_",
+      # patrz config/settings.py), więc env/*.env nie jest tu potrzebny. DB wskazuje
+      # na services: postgres; conftest.py tworzy z niej bazę {DB_NAME}_test.
+      ARTURSCIBOR_BACKEND_DB_HOST: localhost
+      ARTURSCIBOR_BACKEND_DB_PORT: "5432"
+      ARTURSCIBOR_BACKEND_DB_USER: ci
+      ARTURSCIBOR_BACKEND_DB_PASSWORD: ci
+      ARTURSCIBOR_BACKEND_DB_NAME: ci
+      # Sekrety MUSZĄ się różnić — testy tokenów sprawdzają, że refresh token
+      # nie przechodzi walidacji access tokena (i odwrotnie).
+      ARTURSCIBOR_BACKEND_SECRET_ADMIN_TOKEN: ci-admin-secret
+      ARTURSCIBOR_BACKEND_REFRESH_ADMIN_TOKEN: ci-refresh-secret
+      ARTURSCIBOR_BACKEND_ACCESS_TOKEN_EXPIRE_HOURS: "1"
+      ARTURSCIBOR_BACKEND_REFRESH_TOKEN_EXPIRE_HOURS: "1"
+      ARTURSCIBOR_BACKEND_ALGORITHM: HS256
+      ARTURSCIBOR_BACKEND_SERVER: http://localhost:8000
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install Python + dependencies
+        run: |
+          uv python install 3.13
+          uv sync --all-extras
+
+      - name: Import smoke (main + routery + modele)
+        run: uv run python -c "import main; print('import ok')"
+
+      - name: Run tests
+        run: make run_test

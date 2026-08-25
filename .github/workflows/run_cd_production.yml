@@ -1,0 +1,58 @@
+name: CD - Deploy (Ansible -> Docker Swarm)
+
+on:
+  workflow_call:
+    inputs:
+      backend_image:
+        description: "Obraz do wdrożenia (z tagiem wersji z CI); pusty = latest"
+        required: false
+        type: string
+    secrets:
+      ANSIBLE_PASSWORD:
+        required: true
+      SSH_PRIVATE_KEY:
+        required: true
+      TARGET_HOST:
+        required: true
+      SSH_USER:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install ansible-core
+        run: pip install "ansible-core>=2.16"
+
+      - name: Setup SSH key and known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H ${{ secrets.TARGET_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Render inventory
+        run: |
+          sed -i "s/__TARGET_HOST__/${{ secrets.TARGET_HOST }}/" infra/ansible/inventory.ini
+          sed -i "s/__SSH_USER__/${{ secrets.SSH_USER }}/" infra/ansible/inventory.ini
+
+      - name: Run deploy playbook
+        run: |
+          echo "${{ secrets.ANSIBLE_PASSWORD }}" > .vault_pass
+          EXTRA_VARS=""
+          if [ -n "${{ inputs.backend_image }}" ]; then
+            EXTRA_VARS="-e backend_image_override=${{ inputs.backend_image }}"
+          fi
+          ansible-playbook \
+            -i infra/ansible/inventory.ini \
+            infra/ansible/playbook_deploy.yml \
+            --vault-password-file .vault_pass \
+            $EXTRA_VARS
+
+      - name: Cleanup secrets from runner
+        if: always()
+        run: rm -f .vault_pass ~/.ssh/id_deploy

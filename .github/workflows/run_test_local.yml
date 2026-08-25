@@ -1,0 +1,11 @@
+name: Runner - Tests
+
+on:
+  push:
+    branches-ignore:
+      - main
+  workflow_dispatch:
+
+jobs:
+  tests:
+    uses: ./.github/workflows/run_ci_test_local.yml

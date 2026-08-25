@@ -1,0 +1,48 @@
+name: Runner - Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  container_smoke:
+    uses: ./.github/workflows/run_ci_test_containers.yml
+
+  ci:
+    needs: container_smoke
+    uses: ./.github/workflows/run_ci_production.yml
+    # Sekrety w GitHub Actions environment "prod" (Settings -> Environments) —
+    # patrz docs/5-ci-cd.md. `environment:` na tym jobie jest wymagane, żeby
+    # workflow_call w ogóle miał dostęp do sekretów przypisanych do tego środowiska.
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      REPOSITORY: ${{ secrets.REPOSITORY }}
+
+  cd:
+    needs: ci
+    uses: ./.github/workflows/run_cd_production.yml
+    with:
+      backend_image: ${{ needs.ci.outputs.backend_image }}
+    secrets:
+      ANSIBLE_PASSWORD: ${{ secrets.ANSIBLE_PASSWORD }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      TARGET_HOST: ${{ secrets.TARGET_HOST }}
+      SSH_USER: ${{ secrets.SSH_USER }}
+
+  report:
+    needs: [container_smoke, ci, cd]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Summary
+        run: |
+          echo "container_smoke: ${{ needs.container_smoke.result }}"
+          echo "ci (build+push): ${{ needs.ci.result }}"
+          echo "cd (ansible):    ${{ needs.cd.result }}"
+          if [ "${{ needs.cd.result }}" != "success" ]; then
+            echo "Pipeline produkcyjny NIE zakończył się sukcesem."
+            exit 1
+          fi
